@@ -3,6 +3,8 @@ use bevy_ecs_tilemap::prelude::*;
 use bevy_prototype_debug_lines::*;
 use rand::{thread_rng, Rng};
 
+mod input;
+
 #[derive(Component)]
 struct Name(String);
 fn main() {
@@ -10,6 +12,7 @@ fn main() {
         .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(DebugLinesPlugin::default())
+        .add_plugin(input::plugin::InputPlugin)
         .add_plugin(TilemapPlugin)
         .add_startup_system(setup_tiles)
         .add_startup_system_to_stage(StartupStage::PostStartup, randomize_tiles)
@@ -93,6 +96,6 @@ fn randomize_tiles(mut query: Query<&mut TileTexture>) {
 fn debug_system(mut lines: ResMut<DebugLines>) {
     let start = Vec3::splat(-89.0);
     let end = Vec3::splat(29.0);
-    let duration = 0.0; // Duration of 0 will show the line for 1 frame.
+    let duration = 0.1; // Duration of 0 will show the line for 1 frame.
     lines.line(start, end, duration);
 }
