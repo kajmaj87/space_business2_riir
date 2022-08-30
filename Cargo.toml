@@ -1,0 +1,18 @@
+[package]
+name = "space_business2_riir"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+bevy = { version = "0.8", features = ["dynamic"] }
+bevy_ecs_tilemap = "0.7.0"
+bevy_prototype_debug_lines = "0.8.1"
+rand = "0.8.5"

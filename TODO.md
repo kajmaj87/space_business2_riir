@@ -1,0 +1,3 @@
+- [ ] Add planets and orbits 
+- [ ] Add time flow setting
+- [ ] 
