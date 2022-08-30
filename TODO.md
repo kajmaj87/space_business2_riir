@@ -1,3 +1,17 @@
-- [ ] Add planets and orbits 
+- [ ] Split project into:
+  - logic
+    - ai
+  - rendering
+  - input
+- [ ] Add camera controls
+- [ ] Add people, food and growth
+  - [ ] Person tile as overlay?
+  - [ ] Add basic needs (hunger)
+  - [ ] Add basic effects (starvation, death)
+  - [ ] Add growth for plants
+  - [ ] Add move action
+  - [ ] Add big_brain AI
+  - [ ] Add foraging action
+  - [ ] Add birth action
+  - [ ] Add aging and death
 - [ ] Add time flow setting
-- [ ] 
