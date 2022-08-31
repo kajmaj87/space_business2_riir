@@ -1,9 +1,9 @@
-- [ ] Split project into:
+- [X] Split project into:
   - logic
     - ai
   - rendering
   - input
-- [ ] Add camera controls
+- [X] Add camera controls
 - [ ] Add people, food and growth
   - [ ] Person tile as overlay?
   - [ ] Add basic needs (hunger)
@@ -15,3 +15,4 @@
   - [ ] Add birth action
   - [ ] Add aging and death
 - [ ] Add time flow setting
+- [ ] Github actions for different platforms

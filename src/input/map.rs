@@ -1,7 +1,16 @@
-use bevy::{input::Input, math::Vec3, prelude::*, render::camera::Camera};
+use bevy::{
+    input::{
+        mouse::{MouseScrollUnit, MouseWheel},
+        Input,
+    },
+    math::Vec3,
+    prelude::*,
+    render::camera::Camera,
+};
 
 const MOVE_SPEED: f32 = 500.0;
 const ZOOM_SPEED: f32 = 0.075;
+const ZOOM_SENSITIVITY: f32 = 0.25;
 const MAX_ZOOM: f32 = 3.0;
 const MIN_ZOOM: f32 = 0.25;
 
@@ -9,9 +18,21 @@ const MIN_ZOOM: f32 = 0.25;
 pub fn movement(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
+    mut mouse_scroll: EventReader<MouseWheel>,
     mut query: Query<(&mut Transform, &mut OrthographicProjection), With<Camera>>,
 ) {
     for (mut transform, mut ortho) in query.iter_mut() {
+        for ev in mouse_scroll.iter() {
+            let unit = match ev.unit {
+                MouseScrollUnit::Line => "line units",
+                MouseScrollUnit::Pixel => "pixel units",
+            };
+            debug!(
+                "Scroll ({}): vertical: {}, horizontal: {}",
+                unit, ev.y, ev.x
+            );
+            ortho.scale += ev.y * ZOOM_SENSITIVITY;
+        }
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::A) {

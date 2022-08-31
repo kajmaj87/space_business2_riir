@@ -1,31 +1,29 @@
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::{log::LogSettings, prelude::*, render::texture::ImageSettings};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_prototype_debug_lines::*;
 use rand::{thread_rng, Rng};
 
 mod input;
+mod logic;
 
 #[derive(Component)]
 struct Name(String);
 fn main() {
     App::new()
         .insert_resource(ImageSettings::default_nearest())
+        .insert_resource(LogSettings {
+            filter: "info,wgpu_core=warn,wgpu_hal=warn,space_business2_riir=debug".into(),
+            level: bevy::log::Level::DEBUG,
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(DebugLinesPlugin::default())
         .add_plugin(input::plugin::InputPlugin)
+        .add_plugin(logic::plugin::LogicPlugin)
         .add_plugin(TilemapPlugin)
         .add_startup_system(setup_tiles)
         .add_startup_system_to_stage(StartupStage::PostStartup, randomize_tiles)
         .add_system(debug_system)
         .run();
-}
-
-#[derive(Bundle)]
-struct CelestialBody {
-    name: Name,
-
-    #[bundle]
-    sprite: SpriteBundle,
 }
 
 fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -84,11 +82,21 @@ fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>) {
     info!("Tiles were set up");
 }
 
-fn randomize_tiles(mut query: Query<&mut TileTexture>) {
+fn randomize_tiles(mut commands: Commands, mut query: Query<(&mut TileTexture, &TilemapId)>) {
     let mut random = thread_rng();
-    for mut tile in query.iter_mut() {
+    for (mut tile, tile_id) in query.iter_mut() {
         tile.0 = random.gen_range(0..6);
-        info!("Tile texture index is: {}", tile.0);
+        if (2..=5).contains(&tile.0) {
+            // TODO why tile id is always 1? how to access tiles correctly?
+            debug!("Adding food generation for entity {}", tile_id.0.id());
+            let food_amount = tile.0 - 2;
+            commands
+                .entity(tile_id.0)
+                .insert(logic::components::FoodSource(0.1))
+                .insert(logic::components::FoodAmount(
+                    food_amount.try_into().unwrap(),
+                ));
+        }
     }
     info!("Tiles were randomized");
 }
