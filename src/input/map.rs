@@ -31,7 +31,7 @@ pub fn movement(
                 "Scroll ({}): vertical: {}, horizontal: {}",
                 unit, ev.y, ev.x
             );
-            ortho.scale += ev.y * ZOOM_SENSITIVITY;
+            ortho.scale += -ev.y * ZOOM_SENSITIVITY;
         }
         let mut direction = Vec3::ZERO;
 

@@ -4,7 +4,7 @@ use bevy::prelude::{debug, trace, Component, Entity, Query};
 pub struct FoodSource(pub f32);
 
 #[derive(Component)]
-pub struct FoodAmount(pub u8);
+pub struct FoodAmount(pub u32);
 
 pub fn food_growth(mut query: Query<(Entity, &FoodSource, &mut FoodAmount)>) {
     for (entity, growth_speed, mut food_amount) in query.iter_mut() {
