@@ -5,7 +5,7 @@ use rand::{thread_rng, Rng};
 use crate::logic::components::{FoodAmount, FoodSource};
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
-const FOOD_GENERATION_PER_FRAME: f32 = 0.01;
+const FOOD_GENERATION_PER_FRAME: f32 = 0.001;
 
 pub fn update_food_tiles(mut query: Query<(&mut TileTexture, &FoodAmount), Changed<FoodAmount>>) {
     for (mut tile, food_amount) in query.iter_mut() {
