@@ -22,7 +22,7 @@ pub fn randomize_tiles(mut commands: Commands, mut query: Query<(Entity, &mut Ti
             commands
                 .entity(entity)
                 .insert(FoodSource(FOOD_GENERATION_PER_FRAME))
-                .insert(FoodAmount(food_amount.try_into().unwrap()));
+                .insert(FoodAmount(food_amount));
         }
     }
     info!("Tiles were randomized");
