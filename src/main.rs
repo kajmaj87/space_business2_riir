@@ -82,16 +82,16 @@ fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>) {
     info!("Tiles were set up");
 }
 
-fn randomize_tiles(mut commands: Commands, mut query: Query<(&mut TileTexture, &TilemapId)>) {
+fn randomize_tiles(mut commands: Commands, mut query: Query<(Entity, &mut TileTexture)>) {
     let mut random = thread_rng();
-    for (mut tile, tile_id) in query.iter_mut() {
+    for (entity, mut tile) in query.iter_mut() {
         tile.0 = random.gen_range(0..6);
         if (2..=5).contains(&tile.0) {
             // TODO why tile id is always 1? how to access tiles correctly?
-            debug!("Adding food generation for entity {}", tile_id.0.id());
+            debug!("Adding food generation for entity {}", entity.id());
             let food_amount = tile.0 - 2;
             commands
-                .entity(tile_id.0)
+                .entity(entity)
                 .insert(logic::components::FoodSource(0.1))
                 .insert(logic::components::FoodAmount(
                     food_amount.try_into().unwrap(),
