@@ -16,3 +16,6 @@
   - [ ] Add aging and death
 - [ ] Add time flow setting
 - [ ] Github actions for different platforms
+  - [ ] Add release action:
+    - https://github.com/ericcornelissen/git-tag-annotation-action
+    - https://github.com/marketplace/actions/create-tag-release
