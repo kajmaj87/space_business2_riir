@@ -19,3 +19,6 @@
   - [ ] Add release action:
     - https://github.com/ericcornelissen/git-tag-annotation-action
     - https://github.com/marketplace/actions/create-tag-release
+    - remember to use --release
+    - matrix build for different envs
+    - remove "dynamic" feature with sed
