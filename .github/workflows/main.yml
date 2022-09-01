@@ -61,12 +61,13 @@ jobs:
         with:
           command: build
           args: --release
+      - run: ls -lha *
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: space-business-${{ matrix.target }}
           path: |
-            target/${{ matrix.target }}/release/space_business2_riir.*
+            target/
             assets/
             !target/${{ matrix.target }}/release/space_business2_riir.d
 
