@@ -11,19 +11,13 @@ use egui::plot::{Line, Plot, PlotPoints};
 use crate::stats::components::Statistics;
 
 pub fn food_statistics(mut egui_context: ResMut<EguiContext>, stats: Res<Statistics>) {
-    let sin: PlotPoints = (0..1000)
-        .map(|i| {
-            let x = i as f64 * 0.01;
-            [x, x.sin()]
-        })
-        .collect();
-    let stats: PlotPoints = stats
-        .food_history
-        .into_iter()
+    let food = &stats.food_history;
+    let stats: PlotPoints = food
+        .iter()
         .enumerate()
-        .map(|(i, v)| [i as f64, v as f64])
+        .map(|(i, v)| [i as f64, *v as f64])
         .collect();
-    let line = Line::new(sin).name("Apples");
+    let line = Line::new(stats).name("Apples");
     egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
         ui.label("world");
         Plot::new("my_plot")
