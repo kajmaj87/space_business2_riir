@@ -4,6 +4,7 @@ mod debug;
 mod input;
 mod logic;
 mod rendering;
+mod stats;
 
 #[derive(Component)]
 struct Name(String);
@@ -18,6 +19,7 @@ fn main() {
         .add_plugin(debug::plugin::DebugPlugin)
         .add_plugin(input::plugin::InputPlugin)
         .add_plugin(logic::plugin::LogicPlugin)
+        .add_plugin(stats::plugin::StatsPlugin)
         .add_plugin(rendering::plugin::RenderingPlugin)
         .run();
 }
