@@ -44,6 +44,7 @@ jobs:
           - x86_64-unknown-linux-gnu
           - wasm32-unknown-unknown
           - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
           - aarch64-apple-darwin
           - x86_64-apple-darwin
     steps:
@@ -67,8 +68,8 @@ jobs:
         with:
           name: space-business-${{ matrix.target }}
           path: |
-            target/
+            target/release/space_business2_riir*
             assets/
-            !target/${{ matrix.target }}/release/space_business2_riir.d
+            !target/release/space_business2_riir.d
 
 
