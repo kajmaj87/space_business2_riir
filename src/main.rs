@@ -6,8 +6,6 @@ mod logic;
 mod rendering;
 mod stats;
 
-#[derive(Component)]
-struct Name(String);
 fn main() {
     App::new()
         .insert_resource(ImageSettings::default_nearest())
