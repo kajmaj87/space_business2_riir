@@ -16,10 +16,10 @@ fn main() {
             level: bevy::log::Level::DEBUG,
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(debug::plugin::DebugPlugin)
-        .add_plugin(input::plugin::InputPlugin)
-        .add_plugin(logic::plugin::LogicPlugin)
-        .add_plugin(stats::plugin::StatsPlugin)
-        .add_plugin(rendering::plugin::RenderingPlugin)
+        .add_plugin(debug::DebugPlugin)
+        .add_plugin(input::InputPlugin)
+        .add_plugin(logic::LogicPlugin)
+        .add_plugin(stats::StatsPlugin)
+        .add_plugin(rendering::RenderingPlugin)
         .run();
 }
