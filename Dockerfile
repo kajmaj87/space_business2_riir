@@ -15,6 +15,9 @@ ADD Cargo.toml Cargo.lock ./
 
 RUN ls -la
 
+# windows compilation deps
+RUN apt-get install -y mingw-w64
+
 RUN . "$HOME/.cargo/env" && rustup target add x86_64-pc-windows-gnu
 RUN . "$HOME/.cargo/env" && cargo build --target x86_64-pc-windows-gnu
 
