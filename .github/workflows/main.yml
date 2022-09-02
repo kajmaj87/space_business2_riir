@@ -63,7 +63,8 @@ jobs:
           command: build
           args: --release
       - run: ls -lha *
-      - run: ls -lha release/*
+      - run: ls -lha target/*
+      - run: ls -lha target/release/*
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
