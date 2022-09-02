@@ -61,7 +61,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
+          args: --release --target ${{ matrix.target }}
       - run: ls -lha *
       - run: ls -lha target/*
       - run: ls -lha target/release/*
