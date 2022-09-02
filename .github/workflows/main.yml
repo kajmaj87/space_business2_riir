@@ -63,13 +63,14 @@ jobs:
       - run: ls -lha *
       - run: ls -lha target/${{ matrix.target}}/*
       - run: ls -lha target/${{ matrix.target}}/release/*
+      - run: mv target/${{ matrix.target}}/release/space_business2_riir* .
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: space-business-${{ matrix.target }}
           path: |
-            target/${{ matrix.target }}/release/space_business2_riir*
+            space_business2_riir*
             assets/
-            !target/${{ matrix.target }}/release/space_business2_riir.d
+            !space_business2_riir.d
 
 
