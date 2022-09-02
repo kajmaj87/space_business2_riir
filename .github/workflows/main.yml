@@ -37,6 +37,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         rust:
           - stable
@@ -61,15 +62,15 @@ jobs:
           command: build
           args: --release --target ${{ matrix.target }}
       - run: ls -lha *
-      - run: ls -lha target/*
-      - run: ls -lha target/release/*
+      - run: ls -lha target/${{ matrix.target}}/*
+      - run: ls -lha target/${{ matrix.target}}/release/*
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: space-business-${{ matrix.target }}
           path: |
-            target/release/space_business2_riir*
+            target/${{ matrix.target }}/release/space_business2_riir*
             assets/
-            !target/release/space_business2_riir.d
+            !target/${{ matrix.target }}/release/space_business2_riir.d
 
 
