@@ -13,7 +13,7 @@ pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Person {
         name: Name(String::from("Test guy")),
         sprite: SpriteBundle {
-            texture: asset_server.load("person.png"),
+            texture: asset_server.load("dead_person.png"),
             transform: Transform {
                 translation: Vec3 {
                     x: 0.0,

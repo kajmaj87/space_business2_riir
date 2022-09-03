@@ -16,6 +16,10 @@ impl Plugin for RenderingPlugin {
             .add_startup_system_to_stage(StartupStage::PostStartup, tiles::randomize_tiles)
             .add_startup_system_to_stage(StartupStage::PostStartup, camera::init_camera)
             .add_system(tiles::update_food_tiles)
+            .insert_resource(ui::UiState {
+                open_settings_panel: ui::SettingsPanel::Game,
+            })
+            .add_system(ui::settings)
             .add_system(ui::food_statistics);
     }
 }

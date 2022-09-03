@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
-use crate::logic::components::{FoodAmount, FoodSource, FOOD_GENERATION_PER_FRAME};
+use crate::logic::components::{FoodAmount, FoodSource};
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
 
@@ -20,7 +20,7 @@ pub fn randomize_tiles(mut commands: Commands, mut query: Query<(Entity, &mut Ti
             let food_amount = tile.0 - FIRST_FOOD_TILE_INDEX;
             commands
                 .entity(entity)
-                .insert(FoodSource(FOOD_GENERATION_PER_FRAME))
+                .insert(FoodSource())
                 .insert(FoodAmount(food_amount));
         }
     }
