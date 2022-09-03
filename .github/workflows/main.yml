@@ -71,6 +71,7 @@ jobs:
           path: |
             space_business2_riir*
             assets/
+            data/
             !space_business2_riir.d
 
 
