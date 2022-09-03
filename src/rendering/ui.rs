@@ -52,6 +52,12 @@ pub fn settings(
     //     }
     // });
     egui::Window::new("Config").show(egui_context.ctx_mut(), |ui| {
+        ui.collapsing("Instructions", |ui| {
+            ui.label("Most of the values you adjust here will take effect immediately.");
+            ui.label("You can hover over the option name to see an extended tooltip of what it does.");
+            ui.label("If you wish to change the value precisely you can drag the numeric value or double click to edit it.");
+            ui.label(format!("If range of the values is too small you can edit the {} file and edit the matching \"range\" entry or you can just remove it completely.", CONFIG_PATH));
+        });
         ui.horizontal(|ui| {
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Game);
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Camera);
