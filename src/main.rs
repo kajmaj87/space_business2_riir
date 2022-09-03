@@ -1,5 +1,8 @@
+#[macro_use]
+extern crate enum_display_derive;
 use bevy::{log::LogSettings, prelude::*, render::texture::ImageSettings};
 
+mod config;
 mod debug;
 mod input;
 mod logic;
@@ -14,6 +17,7 @@ fn main() {
             level: bevy::log::Level::DEBUG,
         })
         .add_plugins(DefaultPlugins)
+        .add_plugin(config::ConfigPlugin)
         .add_plugin(debug::DebugPlugin)
         .add_plugin(input::InputPlugin)
         .add_plugin(logic::LogicPlugin)

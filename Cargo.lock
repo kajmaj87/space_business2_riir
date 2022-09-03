@@ -1421,6 +1421,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum-display-derive"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f16ef37b2a9b242295d61a154ee91ae884afff6b8b933b486b12481cc58310ca"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "env_logger"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2962,7 +2973,10 @@ dependencies = [
  "bevy_ecs_tilemap",
  "bevy_egui",
  "bevy_prototype_debug_lines",
+ "enum-display-derive",
  "rand",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
