@@ -21,6 +21,7 @@ use crate::{
 pub enum SettingsPanel {
     Camera,
     Game,
+    Map,
 }
 
 pub struct UiState {
@@ -61,6 +62,7 @@ pub fn settings(
         ui.horizontal(|ui| {
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Game);
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Camera);
+            add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Map);
             let space_left = ui.available_size() - bevy_egui::egui::Vec2 { x: 45.0, y: 0.0 };
             ui.allocate_space(space_left);
             if ui.button("Save").clicked() {
@@ -81,6 +83,11 @@ pub fn settings(
                         draw_config_value(ui, &mut config.game.hunger_increase);
                         draw_config_value(ui, &mut config.game.hunger_decrease);
                         draw_config_value(ui, &mut config.game.person_ttl);
+                }),
+            SettingsPanel::Map => add_options_grid(ui, |ui| {
+                        draw_config_value(ui, &mut config.map.size_x);
+                        draw_config_value(ui, &mut config.map.size_y);
+                        draw_config_value(ui, &mut config.map.tree_tile_probability);
                 })
         }
     });

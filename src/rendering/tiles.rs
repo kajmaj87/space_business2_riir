@@ -2,7 +2,10 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
-use crate::logic::components::{FoodAmount, FoodSource};
+use crate::{
+    config::Config,
+    logic::components::{FoodAmount, FoodSource},
+};
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
 
@@ -12,11 +15,19 @@ pub fn update_food_tiles(mut query: Query<(&mut TileTexture, &FoodAmount), Chang
     }
 }
 
-pub fn randomize_tiles(mut commands: Commands, mut query: Query<(Entity, &mut TileTexture)>) {
+pub fn randomize_tiles(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut TileTexture)>,
+    config: Res<Config>,
+) {
     let mut random = thread_rng();
     for (entity, mut tile) in query.iter_mut() {
-        tile.0 = random.gen_range(0..6);
-        if (2..=5).contains(&tile.0) {
+        if random.gen_range(0.0..1.0) < config.map.tree_tile_probability.value {
+            tile.0 = random.gen_range(2..6);
+        } else {
+            tile.0 = random.gen_range(0..2);
+        }
+        if (2..6).contains(&tile.0) {
             let food_amount = tile.0 - FIRST_FOOD_TILE_INDEX;
             commands
                 .entity(entity)
@@ -27,12 +38,15 @@ pub fn randomize_tiles(mut commands: Commands, mut query: Query<(Entity, &mut Ti
     info!("Tiles were randomized");
 }
 
-pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, config: Res<Config>) {
     commands.spawn_bundle(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
-    let tilemap_size = TilemapSize { x: 32, y: 32 };
+    let tilemap_size = TilemapSize {
+        x: config.map.size_x.value,
+        y: config.map.size_y.value,
+    };
 
     // Create a tilemap entity a little early.
     // We want this entity early because we need to tell each tile which tilemap entity

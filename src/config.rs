@@ -32,9 +32,17 @@ pub struct GameConfig {
 }
 
 #[derive(Serialize, Deserialize, Debug, Component)]
+pub struct MapConfig {
+    pub size_x: ConfigValue<u32>,
+    pub size_y: ConfigValue<u32>,
+    pub tree_tile_probability: ConfigValue<f32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Component)]
 pub struct Config {
     pub camera: CameraConfig,
     pub game: GameConfig,
+    pub map: MapConfig,
 }
 
 #[derive(Component)]

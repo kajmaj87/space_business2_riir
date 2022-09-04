@@ -5,11 +5,26 @@ use bevy::{
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::*;
 
-pub fn debug_window(mut egui_context: ResMut<EguiContext>, diagnostics: Res<Diagnostics>) {
+use crate::config::Config;
+
+pub fn debug_window(
+    mut egui_context: ResMut<EguiContext>,
+    diagnostics: Res<Diagnostics>,
+    config: Res<Config>,
+) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
             egui::Window::new("Debug").show(egui_context.ctx_mut(), |ui| {
                 ui.label(format!("Rendering @{:.1}fps", average));
+                ui.label(format!(
+                    "Theoretical max population: {:.1}",
+                    config.map.size_x.value as f32
+                        * config.map.size_y.value as f32
+                        * config.map.tree_tile_probability.value
+                        * config.game.growth.value
+                        * config.game.hunger_decrease.value
+                        / config.game.hunger_increase.value
+                ))
             });
         }
     }
