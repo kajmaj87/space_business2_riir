@@ -71,26 +71,14 @@ pub fn settings(
         });
         ui.separator();
         match state.open_settings_panel {
-            SettingsPanel::Camera => {
-                egui::Grid::new("my_grid")
-                    .num_columns(2)
-                    .spacing([40.0, 4.0])
-                    .striped(true)
-                    .show(ui, |ui| {
+            SettingsPanel::Camera => add_options_grid(ui, |ui| {
                         draw_config_value(ui, &mut config.camera.move_speed);
                         draw_config_value(ui, &mut config.camera.zoom_speed);
                         draw_config_value(ui, &mut config.camera.zoom_sensitivity);
-                    });
-            }
-            SettingsPanel::Game => {
-                egui::Grid::new("my_grid")
-                    .num_columns(2)
-                    .spacing([40.0, 4.0])
-                    .striped(true)
-                    .show(ui, |ui| {
+                    }),
+            SettingsPanel::Game => add_options_grid(ui, |ui| {
                         draw_config_value(ui, &mut config.game.growth);
-                    });
-            }
+                })
         }
     });
 }
@@ -98,6 +86,14 @@ pub fn settings(
 fn add_settings_panel(ui: &mut Ui, value: &mut SettingsPanel, label: SettingsPanel) {
     let text = label.to_string();
     ui.selectable_value(value, label, text);
+}
+
+fn add_options_grid<R>(ui: &mut Ui, f: impl FnOnce(&mut Ui) -> R) {
+    egui::Grid::new("options_grid")
+        .num_columns(2)
+        .spacing([40.0, 4.0])
+        .striped(true)
+        .show(ui, f);
 }
 
 fn draw_config_value<T: Numeric>(ui: &mut Ui, value: &mut ConfigValue<T>) {
