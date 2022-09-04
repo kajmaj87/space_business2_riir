@@ -68,7 +68,9 @@ fn hunger_system(
         hunger.0 += config.game.hunger_increase.value;
         if hunger.0 > 1.0 {
             commands.entity(person).insert(Dead);
-            commands.entity(person).insert(Ttl(600));
+            commands
+                .entity(person)
+                .insert(Ttl(config.game.person_ttl.value));
             info!("Person hunger value: {}, person has died", hunger.0);
         }
     }

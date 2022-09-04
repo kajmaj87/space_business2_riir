@@ -80,6 +80,7 @@ pub fn settings(
                         draw_config_value(ui, &mut config.game.growth);
                         draw_config_value(ui, &mut config.game.hunger_increase);
                         draw_config_value(ui, &mut config.game.hunger_decrease);
+                        draw_config_value(ui, &mut config.game.person_ttl);
                 })
         }
     });

@@ -1,60 +1,65 @@
 {
-  "camera": {
-    "move_speed": {
-      "value": 250.0,
-      "name": "Move speed",
-      "description": "Move speed only affects keyboard movement (WSAD)",
-      "range": [
-        100.0,
-        1000.0
-      ]
+    "camera": {
+        "move_speed": {
+            "value": 250.0,
+            "name": "Move speed",
+            "description": "Move speed only affects keyboard movement (WSAD)",
+            "range": [
+                100.0,
+                1000.0
+            ]
+        },
+        "zoom_speed": {
+            "value": 0.015,
+            "name": "Zoom speed",
+            "description": "Zoom speed only affects keyboard zoom (Z or X)",
+            "range": [
+                0.005,
+                0.2
+            ]
+        },
+        "zoom_sensitivity": {
+            "value": 0.15,
+            "name": "Zoom sensitivity",
+            "description": "Zoom sensitivity only affects mouse scroll zoom speed",
+            "range": [
+                0.1,
+                1.0
+            ]
+        }
     },
-    "zoom_speed": {
-      "value": 0.015,
-      "name": "Zoom speed",
-      "description": "Zoom speed only affects keyboard zoom (Z or X)",
-      "range": [
-        0.005,
-        0.2
-      ]
-    },
-    "zoom_sensitivity": {
-      "value": 0.15,
-      "name": "Zoom sensitivity",
-      "description": "Zoom sensitivity only affects mouse scroll zoom speed",
-      "range": [
-        0.1,
-        1.0
-      ]
+    "game": {
+        "growth": {
+            "value": 0.001,
+            "name": "Food growth speed",
+            "description": "Probability that a tree will get a new apple each frame",
+            "range": [
+                0.0,
+                0.01
+            ]
+        },
+        "hunger_increase": {
+            "value": 0.01,
+            "name": "Hunger growth",
+            "description": "Hunger increase each frame",
+            "range": [
+                0.0,
+                0.01
+            ]
+        },
+        "hunger_decrease": {
+            "value": 0.5,
+            "name": "Hunger removal",
+            "description": "How much hunger will be removed after eating one item of food.",
+            "range": [
+                0.0,
+                1.0
+            ]
+        },
+        "person_ttl": {
+            "value": 600,
+            "name": "Person TTL",
+            "description": "How many frames to wait until removing dead person entity from game"
+        }
     }
-  },
-  "game": {
-    "growth": {
-      "value": 0.001,
-      "name": "Food growth speed",
-      "description": "Probability that a tree will get a new apple each frame",
-      "range": [
-        0.0,
-        0.01
-      ]
-    },
-    "hunger_increase": {
-      "value": 0.01,
-      "name": "Hunger growth",
-      "description": "Hunger increase each frame",
-      "range": [
-        0.0,
-        0.01
-      ]
-    },
-    "hunger_decrease": {
-      "value": 0.5,
-      "name": "Hunger removal",
-      "description": "How much hunger will be removed after eating one item of food.",
-      "range": [
-        0.0,
-        1.0
-      ]
-    }
-  }
 }
