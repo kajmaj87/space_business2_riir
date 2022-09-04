@@ -1,19 +1,49 @@
 use bevy::prelude::*;
 
-use super::components::Name;
+use crate::config::Config;
+
+use super::{
+    components::{Name, Ttl},
+    planet::FoodAmount,
+};
+
+#[derive(Component)]
+struct Hunger(f32);
+
+#[derive(Component)]
+pub struct Person;
+
+#[derive(Component)]
+pub struct Dead;
 
 #[derive(Bundle)]
-pub struct Person {
+struct PersonBundle {
     name: Name,
+    type_marker: Person,
+    hunger: Hunger,
+    food: FoodAmount,
     #[bundle]
     sprite: SpriteBundle,
 }
 
-pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(Person {
+pub struct PeoplePlugin;
+
+impl Plugin for PeoplePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(init_people)
+            .add_system(hunger_system)
+            .add_system(cleanup_system);
+    }
+}
+
+fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn_bundle(PersonBundle {
         name: Name(String::from("Test guy")),
+        type_marker: Person,
+        hunger: Hunger(0.0),
+        food: FoodAmount(3),
         sprite: SpriteBundle {
-            texture: asset_server.load("dead_person.png"),
+            texture: asset_server.load("person.png"),
             transform: Transform {
                 translation: Vec3 {
                     x: 0.0,
@@ -25,4 +55,30 @@ pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         },
     });
+}
+
+fn hunger_system(
+    mut commands: Commands,
+    mut query: Query<(Entity, &Person, &mut Hunger, Option<&Dead>)>,
+    config: Res<Config>,
+) {
+    for (person, _, mut hunger, dead) in query.iter_mut() {
+        info!("Person hunger value: {}", hunger.0);
+        hunger.0 += config.game.hunger_increase.value;
+        if hunger.0 > 1.0 && dead.is_none() {
+            commands.entity(person).insert(Dead);
+            commands.entity(person).insert(Ttl(600));
+            info!("Person hunger value: {}, person has died", hunger.0);
+        }
+    }
+}
+
+fn cleanup_system(mut commands: Commands, mut query: Query<(Entity, &mut Ttl)>) {
+    for (entity, mut ttl) in query.iter_mut() {
+        if ttl.0 > 0 {
+            ttl.0 -= 1;
+        } else {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
 }

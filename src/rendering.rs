@@ -1,4 +1,5 @@
 mod camera;
+mod planet;
 mod tiles;
 mod ui;
 
@@ -20,6 +21,7 @@ impl Plugin for RenderingPlugin {
                 open_settings_panel: ui::SettingsPanel::Game,
             })
             .add_system(ui::settings)
-            .add_system(ui::food_statistics);
+            .add_system(ui::food_statistics)
+            .add_system(planet::death_system);
     }
 }

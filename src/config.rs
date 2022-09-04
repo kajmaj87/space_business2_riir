@@ -26,6 +26,7 @@ pub struct CameraConfig {
 #[derive(Serialize, Deserialize, Debug, Component)]
 pub struct GameConfig {
     pub growth: ConfigValue<f32>,
+    pub hunger_increase: ConfigValue<f32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Component)]

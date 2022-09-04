@@ -78,6 +78,7 @@ pub fn settings(
                     }),
             SettingsPanel::Game => add_options_grid(ui, |ui| {
                         draw_config_value(ui, &mut config.game.growth);
+                        draw_config_value(ui, &mut config.game.hunger_increase);
                 })
         }
     });
