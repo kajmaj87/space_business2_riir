@@ -5,16 +5,17 @@
   - input
 - [X] Add camera controls
 - [ ] Add people, food and growth
-  - [ ] Person tile as overlay?
-  - [ ] Add basic needs (hunger)
-  - [ ] Add basic effects (starvation, death)
-  - [ ] Add growth for plants
+  - [X] Person tile as overlay?
+  - [X] Add basic needs (hunger)
+  - [X] Add basic effects (starvation, death)
+  - [X] Add growth for plants
   - [ ] Add move action
   - [ ] Add big_brain AI
   - [ ] Add foraging action
   - [ ] Add birth action
-  - [ ] Add aging and death
+  - [ ] Add aging
 - [ ] Add time flow setting
+- [ ] Try to generify `FoodAmount` and `FoodSource` to `StackOf<Food>` and `SourceOf<Food>`
 - [ ] Github actions for different platforms
   - [ ] Add release action:
     - https://github.com/ericcornelissen/git-tag-annotation-action
