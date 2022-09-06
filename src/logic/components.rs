@@ -1,4 +1,4 @@
-pub use super::people::{Dead, Person};
+pub use super::people::{Dead, Hunger, Person};
 pub use super::planet::{FoodAmount, FoodSource};
 use bevy::prelude::*;
 

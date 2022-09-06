@@ -8,7 +8,7 @@ use super::{
 };
 
 #[derive(Component)]
-struct Hunger(f32);
+pub struct Hunger(pub f32);
 
 #[derive(Component)]
 pub struct Person;
@@ -32,12 +32,12 @@ impl Plugin for PeoplePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(init_people)
             .add_system(hunger_system)
-            .add_system(eating_system)
             .add_system(cleanup_system);
     }
 }
 
-fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
+    info!("People initialized");
     commands.spawn_bundle(PersonBundle {
         name: Name(String::from("Test guy")),
         type_marker: Person,
@@ -72,17 +72,6 @@ fn hunger_system(
                 .entity(person)
                 .insert(Ttl(config.game.person_ttl.value));
             info!("Person hunger value: {}, person has died", hunger.0);
-        }
-    }
-}
-
-// TODO this will be removed when AI is implemented
-fn eating_system(mut query: Query<(&mut Hunger, &mut FoodAmount)>, config: Res<Config>) {
-    for (mut hunger, mut food) in query.iter_mut() {
-        if hunger.0 > config.game.hunger_decrease.value && food.0 > 0 {
-            hunger.0 = 0.0;
-            food.0 -= 1;
-            info!("Person ate something, food left: {}", food.0);
         }
     }
 }

@@ -20,6 +20,7 @@ bevy_ecs_tilemap = { version = "0.7.0", features = ["atlas"] }
 # open_url and manage_clipboard are disabled as not yet needed
 bevy_egui = { version = "0.16.0", features = ["arboard", "default_fonts", "thread_local", "webbrowser"] }
 bevy_prototype_debug_lines = "0.8.1"
+big-brain = "0.12.0"
 enum-display-derive = "0.1.1"
 rand = "0.8.5"
 serde = { version = "1.0.144", features = ["derive"] }
