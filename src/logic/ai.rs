@@ -27,7 +27,7 @@ impl Plugin for AiPlugin {
 pub fn init_brains(mut commands: Commands, query: Query<(Entity, &Person)>) {
     info!("Brains initialized");
     for (entity, _) in query.iter() {
-        info!("Adding a thinker");
+        debug!("Adding a thinker @{}", entity.id());
         commands.entity(entity).insert(
             Thinker::build()
                 .picker(FirstToScore { threshold: 0.8 })
@@ -42,19 +42,20 @@ fn eat_action_system(
     config: Res<Config>,
 ) {
     for (Actor(actor), mut state, _eat) in query.iter_mut() {
-        info!("Have some eaters");
         if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
             match *state {
                 ActionState::Requested => {
-                    info!("Time to eat something!");
                     *state = ActionState::Executing;
                 }
                 ActionState::Executing => {
-                    info!("Eating some food");
-                    if hunger.0 > config.game.hunger_decrease.value && food.0 > 0 {
-                        hunger.0 = 0.0;
+                    if food.0 > 0 {
+                        let old_hunger = hunger.0;
+                        hunger.0 -= config.game.hunger_decrease.value;
                         food.0 -= 1;
-                        info!("Person ate something, food left: {}", food.0);
+                        info!(
+                            "Person ate something, food left: {}, hunger was: {}, hunger is: {}",
+                            food.0, old_hunger, hunger.0
+                        );
                     }
                     *state = ActionState::Success;
                 }
@@ -67,17 +68,16 @@ fn eat_action_system(
     }
 }
 
-// Looks familiar? It's a lot like Actions!
 pub fn hungry_scorer_system(
     hungers: Query<&Hunger>,
-    // Same dance with the Actor here, but now we use look up Score instead of ActionState.
     mut query: Query<(&Actor, &mut Score), With<Hungry>>,
 ) {
     for (Actor(actor), mut score) in query.iter_mut() {
-        info!("I have someone with score");
         if let Ok(hunger) = hungers.get(*actor) {
             // The score here must be between 0.0 and 1.0.
-            score.set(hunger.0);
+            let s = if hunger.0 < 1.0 { hunger.0 } else { 1.0 };
+            let s = if s > 0.0 { s } else { 0.0 };
+            score.set(s * s);
         }
     }
 }

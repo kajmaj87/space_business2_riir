@@ -64,7 +64,6 @@ fn hunger_system(
     config: Res<Config>,
 ) {
     for (person, _, mut hunger) in query.iter_mut() {
-        info!("Person hunger value: {}", hunger.0);
         hunger.0 += config.game.hunger_increase.value;
         if hunger.0 > 1.0 {
             commands.entity(person).insert(Dead);
