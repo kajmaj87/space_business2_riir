@@ -8,9 +8,11 @@ use super::components::{FoodAmount, Hunger, Person};
 use super::people::init_people;
 
 #[derive(Clone, Component, Debug)]
-pub struct Hungry;
+struct Hungry;
 #[derive(Clone, Component, Debug)]
-pub struct Eat;
+struct Eat;
+#[derive(Clone, Component, Debug)]
+struct Move;
 
 pub struct AiPlugin;
 
@@ -58,6 +60,20 @@ fn eat_action_system(
     }
 }
 
+fn hungry_scorer_system(
+    hungers: Query<&Hunger>,
+    mut query: Query<(&Actor, &mut Score), With<Hungry>>,
+) {
+    for (Actor(actor), mut score) in query.iter_mut() {
+        if let Ok(hunger) = hungers.get(*actor) {
+            // The score here must be between 0.0 and 1.0.
+            let s = if hunger.0 < 1.0 { hunger.0 } else { 1.0 };
+            let s = if s > 0.0 { s } else { 0.0 };
+            score.set(s * s);
+        }
+    }
+}
+
 fn just_execute(mut state: Mut<ActionState>, f: impl FnOnce()) {
     match *state {
         ActionState::Requested => {
@@ -71,19 +87,5 @@ fn just_execute(mut state: Mut<ActionState>, f: impl FnOnce()) {
             *state = ActionState::Failure;
         }
         _ => {}
-    }
-}
-
-pub fn hungry_scorer_system(
-    hungers: Query<&Hunger>,
-    mut query: Query<(&Actor, &mut Score), With<Hungry>>,
-) {
-    for (Actor(actor), mut score) in query.iter_mut() {
-        if let Ok(hunger) = hungers.get(*actor) {
-            // The score here must be between 0.0 and 1.0.
-            let s = if hunger.0 < 1.0 { hunger.0 } else { 1.0 };
-            let s = if s > 0.0 { s } else { 0.0 };
-            score.set(s * s);
-        }
     }
 }
