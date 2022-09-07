@@ -41,30 +41,36 @@ fn eat_action_system(
     mut query: Query<(&Actor, &mut ActionState, &Eat)>,
     config: Res<Config>,
 ) {
-    for (Actor(actor), mut state, _eat) in query.iter_mut() {
+    for (Actor(actor), state, _eat) in query.iter_mut() {
         if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
-            match *state {
-                ActionState::Requested => {
-                    *state = ActionState::Executing;
+            just_execute(state, || {
+                if food.0 > 0 {
+                    let old_hunger = hunger.0;
+                    hunger.0 -= config.game.hunger_decrease.value;
+                    food.0 -= 1;
+                    info!(
+                        "Person ate something, food left: {}, hunger was: {}, hunger is: {}",
+                        food.0, old_hunger, hunger.0
+                    );
                 }
-                ActionState::Executing => {
-                    if food.0 > 0 {
-                        let old_hunger = hunger.0;
-                        hunger.0 -= config.game.hunger_decrease.value;
-                        food.0 -= 1;
-                        info!(
-                            "Person ate something, food left: {}, hunger was: {}, hunger is: {}",
-                            food.0, old_hunger, hunger.0
-                        );
-                    }
-                    *state = ActionState::Success;
-                }
-                ActionState::Cancelled => {
-                    *state = ActionState::Failure;
-                }
-                _ => {}
-            }
+            })
         }
+    }
+}
+
+fn just_execute(mut state: Mut<ActionState>, f: impl FnOnce()) {
+    match *state {
+        ActionState::Requested => {
+            *state = ActionState::Executing;
+        }
+        ActionState::Executing => {
+            f();
+            *state = ActionState::Success;
+        }
+        ActionState::Cancelled => {
+            *state = ActionState::Failure;
+        }
+        _ => {}
     }
 }
 
