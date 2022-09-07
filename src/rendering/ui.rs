@@ -75,6 +75,7 @@ pub fn settings(
         match state.open_settings_panel {
             SettingsPanel::Camera => add_options_grid(ui, |ui| {
                         draw_config_value(ui, &mut config.camera.move_speed);
+                        draw_config_value(ui, &mut config.camera.initial_zoom);
                         draw_config_value(ui, &mut config.camera.zoom_speed);
                         draw_config_value(ui, &mut config.camera.zoom_sensitivity);
                     }),

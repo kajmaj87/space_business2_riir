@@ -8,6 +8,7 @@ use crate::{
 };
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
+pub const TILE_SIZE: f32 = 16.0;
 
 pub fn update_food_tiles(mut query: Query<(&mut TileTexture, &FoodAmount), Changed<FoodAmount>>) {
     for (mut tile, food_amount) in query.iter_mut() {
@@ -77,21 +78,27 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
         }
     }
 
-    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
+    let tile_size = TilemapTileSize {
+        x: TILE_SIZE,
+        y: TILE_SIZE,
+    };
 
     commands
         .entity(tilemap_entity)
         .insert_bundle(TilemapBundle {
-            grid_size: TilemapGridSize { x: 16.0, y: 16.0 },
+            grid_size: TilemapGridSize {
+                x: TILE_SIZE,
+                y: TILE_SIZE,
+            },
             size: tilemap_size,
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-                &tilemap_size,
-                &tile_size,
-                0.0,
-            ),
+            // transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+            //     &tilemap_size,
+            //     &tile_size,
+            //     0.0,
+            // ),
             ..Default::default()
         });
     info!("Tiles were set up");

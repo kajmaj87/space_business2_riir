@@ -19,6 +19,7 @@ pub struct ConfigValue<T> {
 #[derive(Serialize, Deserialize, Debug, Component)]
 pub struct CameraConfig {
     pub move_speed: ConfigValue<f32>,
+    pub initial_zoom: ConfigValue<f32>,
     pub zoom_speed: ConfigValue<f32>,
     pub zoom_sensitivity: ConfigValue<f32>,
 }

@@ -16,12 +16,20 @@ pub struct Person;
 #[derive(Component)]
 pub struct Dead;
 
+// Position and GridPostion are already defined in bevy::prelude
+#[derive(Component)]
+pub struct GridCoords {
+    pub x: f32,
+    pub y: f32,
+}
+
 #[derive(Bundle)]
 struct PersonBundle {
     name: Name,
     type_marker: Person,
     hunger: Hunger,
     food: FoodAmount,
+    position: GridCoords,
     #[bundle]
     sprite: SpriteBundle,
 }
@@ -43,6 +51,7 @@ pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
         type_marker: Person,
         hunger: Hunger(0.0),
         food: FoodAmount(3),
+        position: GridCoords { x: 0.0, y: 0.0 },
         sprite: SpriteBundle {
             texture: asset_server.load("person.png"),
             transform: Transform {

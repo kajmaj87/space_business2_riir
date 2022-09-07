@@ -22,6 +22,7 @@ impl Plugin for RenderingPlugin {
             })
             .add_system(ui::settings)
             .add_system(ui::food_statistics)
-            .add_system(planet::death_system);
+            .add_system(planet::death_system)
+            .add_system(planet::translation_update_system);
     }
 }
