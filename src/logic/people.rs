@@ -87,8 +87,6 @@ fn hunger_system(
                 .entity(person)
                 .insert(Ttl(config.game.person_ttl.value));
             info!("Person hunger value: {}, person has died", hunger.0);
-        } else {
-            commands.entity(person).insert(Move { dx: -0.1, dy: -0.2 });
         }
     }
 }

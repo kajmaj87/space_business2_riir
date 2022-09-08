@@ -1,93 +1,93 @@
 {
-    "camera": {
-        "move_speed": {
-            "value": 250.0,
-            "name": "Move speed",
-            "description": "Move speed only affects keyboard movement (WSAD)",
-            "range": [
-                100.0,
-                1000.0
-            ]
-        },
-        "initial_zoom": {
-            "value": 0.015,
-            "name": "Initial zoom",
-            "description": "Zoom level at the start of the game. The lower the value the bigger the the zoom",
-            "range": [
-                0.01,
-                1
-            ]
-        },
-        "zoom_speed": {
-            "value": 0.015,
-            "name": "Zoom speed",
-            "description": "Zoom speed only affects keyboard zoom (Z or X)",
-            "range": [
-                0.005,
-                0.2
-            ]
-        },
-        "zoom_sensitivity": {
-            "value": 0.15,
-            "name": "Zoom sensitivity",
-            "description": "Zoom sensitivity only affects mouse scroll zoom speed",
-            "range": [
-                0.1,
-                1.0
-            ]
-        }
+  "camera": {
+    "move_speed": {
+      "value": 250.0,
+      "name": "Move speed",
+      "description": "Move speed only affects keyboard movement (WSAD)",
+      "range": [
+        100.0,
+        1000.0
+      ]
     },
-    "game": {
-        "growth": {
-            "value": 0.003,
-            "name": "Food growth speed",
-            "description": "Probability that a tree will get a new apple each frame",
-            "range": [
-                0.0,
-                0.01
-            ]
-        },
-        "hunger_increase": {
-            "value": 0.005,
-            "name": "Hunger growth",
-            "description": "Hunger increase each frame",
-            "range": [
-                0.0,
-                0.01
-            ]
-        },
-        "hunger_decrease": {
-            "value": 0.5,
-            "name": "Hunger removal",
-            "description": "How much hunger will be removed after eating one item of food.",
-            "range": [
-                0.0,
-                1.0
-            ]
-        },
-        "person_ttl": {
-            "value": 600,
-            "name": "Person TTL",
-            "description": "How many frames to wait until removing dead person entity from game"
-        }
+    "initial_zoom": {
+      "value": 0.015,
+      "name": "Initial zoom",
+      "description": "Zoom level at the start of the game. The lower the value the bigger the the zoom",
+      "range": [
+        0.01,
+        1.0
+      ]
     },
-    "map": {
-        "size_x": {
-            "value": 10,
-            "name": "Map size x"
-        },
-        "size_y": {
-            "value": 10,
-            "name": "Map size y"
-        },
-        "tree_tile_probability": {
-            "value": 1.0,
-            "name": "Tree tile %",
-            "description": "How many tiles will be generates as trees (randomly)",
-            "range": [
-                0.0,
-                1.0
-            ]
-        }
+    "zoom_speed": {
+      "value": 0.015,
+      "name": "Zoom speed",
+      "description": "Zoom speed only affects keyboard zoom (Z or X)",
+      "range": [
+        0.005,
+        0.2
+      ]
+    },
+    "zoom_sensitivity": {
+      "value": 0.15,
+      "name": "Zoom sensitivity",
+      "description": "Zoom sensitivity only affects mouse scroll zoom speed",
+      "range": [
+        0.1,
+        1.0
+      ]
     }
+  },
+  "game": {
+    "growth": {
+      "value": 0.0,
+      "name": "Food growth speed",
+      "description": "Probability that a tree will get a new apple each frame",
+      "range": [
+        0.0,
+        0.01
+      ]
+    },
+    "hunger_increase": {
+      "value": 0.005,
+      "name": "Hunger growth",
+      "description": "Hunger increase each frame",
+      "range": [
+        0.0,
+        0.01
+      ]
+    },
+    "hunger_decrease": {
+      "value": 0.5,
+      "name": "Hunger removal",
+      "description": "How much hunger will be removed after eating one item of food.",
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "person_ttl": {
+      "value": 600,
+      "name": "Person TTL",
+      "description": "How many frames to wait until removing dead person entity from game"
+    }
+  },
+  "map": {
+    "size_x": {
+      "value": 10,
+      "name": "Map size x"
+    },
+    "size_y": {
+      "value": 10,
+      "name": "Map size y"
+    },
+    "tree_tile_probability": {
+      "value": 1.0,
+      "name": "Tree tile %",
+      "description": "How many tiles will be generates as trees (randomly)",
+      "range": [
+        0.0,
+        1.0
+      ]
+    }
+  }
 }
