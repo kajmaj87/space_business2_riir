@@ -116,7 +116,7 @@ pub fn food_statistics(mut egui_context: ResMut<EguiContext>, stats: Res<Statist
         Plot::new("my_plot")
             .view_aspect(2.0)
             .legend(Legend {
-                position: Corner::RightBottom,
+                position: Corner::RightTop,
                 ..default()
             })
             .show(ui, |plot_ui| {
