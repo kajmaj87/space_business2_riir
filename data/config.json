@@ -39,7 +39,7 @@
   },
   "game": {
     "growth": {
-      "value": 0.0,
+      "value": 0.0001,
       "name": "Food growth speed",
       "description": "Probability that a tree will get a new apple each frame",
       "range": [
@@ -81,9 +81,25 @@
       "name": "Map size y"
     },
     "tree_tile_probability": {
-      "value": 1.0,
+      "value": 0.2,
       "name": "Tree tile %",
       "description": "How many tiles will be generates as trees (randomly)",
+      "range": [
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "ai": {
+    "food_amount_goal": {
+      "value": 30,
+      "name": "Food amount goal",
+      "description": "Food amount at which the actor does not care about food at all"
+    },
+    "food_amount_threshold": {
+      "value": 1.0,
+      "name": "Food amount threshold",
+      "description": "Each actor will try to have goal * threshold of food around with them",
       "range": [
         0.0,
         1.0

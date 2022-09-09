@@ -18,7 +18,6 @@ pub fn translation_update_system(
     mut query: Query<(&GridCoords, &mut Transform), Changed<GridCoords>>,
 ) {
     for (coords, mut transform) in query.iter_mut() {
-        info!("translation");
         transform.translation = Vec3 {
             x: coords.x * TILE_SIZE + TILE_SIZE / 2.0,
             y: coords.y * TILE_SIZE + TILE_SIZE / 2.0,

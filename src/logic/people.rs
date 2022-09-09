@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::config::Config;
 
 use super::{
-    components::{Name, Ttl},
+    components::{FoodSource, Name, Ttl},
     planet::FoodAmount,
 };
 
@@ -22,8 +22,11 @@ pub struct Move {
     pub dy: f32,
 }
 
-// Position and GridPostion are already defined in bevy::prelude
 #[derive(Component)]
+pub struct Forage;
+
+// Position and GridPostion are already defined in bevy::prelude
+#[derive(Component, PartialEq)]
 pub struct GridCoords {
     pub x: f32,
     pub y: f32,
@@ -47,6 +50,7 @@ impl Plugin for PeoplePlugin {
         app.add_startup_system(init_people)
             .add_system(hunger_system)
             .add_system(move_system)
+            .add_system(foraging_system)
             .add_system(cleanup_system);
     }
 }
@@ -105,6 +109,27 @@ fn move_system(
         }
         if 0.0 <= newy && newy <= config.map.size_y.value as f32 - 1.0 {
             coords.y = newy;
+        }
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn foraging_system(
+    mut commands: Commands,
+    mut people: Query<
+        (Entity, &mut FoodAmount, &GridCoords),
+        (Changed<Forage>, With<Person>, With<Forage>),
+    >,
+    mut food_producers: Query<(&mut FoodAmount, &GridCoords), (With<FoodSource>, Without<Person>)>,
+) {
+    for (person, mut person_food_amount, coords) in people.iter_mut() {
+        for (mut food_producer_amount, food_coords) in food_producers.iter_mut() {
+            if coords == food_coords && food_producer_amount.0 > 0 {
+                info!("Found some food!");
+                person_food_amount.0 += 1;
+                food_producer_amount.0 -= 1;
+                commands.entity(person).remove::<Forage>();
+            }
         }
     }
 }

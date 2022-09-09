@@ -22,6 +22,7 @@ pub enum SettingsPanel {
     Camera,
     Game,
     Map,
+    Ai,
 }
 
 pub struct UiState {
@@ -33,25 +34,6 @@ pub fn settings(
     mut config: ResMut<Config>,
     mut state: ResMut<UiState>,
 ) {
-    // a try to do this in a more genereal way - how to mutate values this way?
-    // egui::Window::new("Settings").show(egui_context.ctx_mut(), |ui| {
-    //     let config = &gconfig.value;
-    //     if let Object(map) = config {
-    //         map.iter().for_each(|(k, v)| {
-    //             let name = &v["name"];
-    //             let value = &v["value"];
-    //             if let String(s) = name {
-    //                 ui.label(s);
-    //             }
-    //             if let Number(n) = value {
-    //                 ui.add(
-    //                     egui::Slider::new(&mut n.as_f64().unwrap(), 0.0..=100.0).text("My value"),
-    //                 );
-    //             }
-    //             // ui.add(egui::Slider::new(&mut my_f32, 0.0..=100.0).text("My value"));
-    //         })
-    //     }
-    // });
     egui::Window::new("Config").show(egui_context.ctx_mut(), |ui| {
         ui.collapsing("Instructions", |ui| {
             ui.label("Most of the values you adjust here will take effect immediately.");
@@ -63,6 +45,7 @@ pub fn settings(
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Game);
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Camera);
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Map);
+            add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Ai);
             let space_left = ui.available_size() - bevy_egui::egui::Vec2 { x: 45.0, y: 0.0 };
             ui.allocate_space(space_left);
             if ui.button("Save").clicked() {
@@ -89,7 +72,11 @@ pub fn settings(
                         draw_config_value(ui, &mut config.map.size_x);
                         draw_config_value(ui, &mut config.map.size_y);
                         draw_config_value(ui, &mut config.map.tree_tile_probability);
-                })
+                }),
+            SettingsPanel::Ai => add_options_grid(ui, |ui| {
+                        draw_config_value(ui, &mut config.ai.food_amount_goal);
+                        draw_config_value(ui, &mut config.ai.food_amount_threshold);
+                }),
         }
     });
 }

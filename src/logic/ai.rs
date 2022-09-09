@@ -7,6 +7,7 @@ use crate::config::Config;
 
 use super::components::{FoodAmount, Hunger, Person};
 use super::people::init_people;
+use super::people::Forage;
 
 #[derive(Clone, Component, Debug)]
 struct Hungry;
@@ -55,7 +56,8 @@ fn move_action_system(
             let dy = random.gen_range(-1..=1) as f32;
             commands
                 .entity(*actor)
-                .insert(super::components::Move { dx, dy });
+                .insert(super::components::Move { dx, dy })
+                .insert(Forage);
         })
     }
 }
@@ -63,10 +65,13 @@ fn move_action_system(
 fn move_scorer_system(
     food_amount: Query<&FoodAmount>,
     mut query: Query<(&Actor, &mut Score), With<MoveNeed>>,
+    config: Res<Config>,
 ) {
     for (Actor(actor), mut score) in query.iter_mut() {
         if let Ok(food) = food_amount.get(*actor) {
-            let s = clamp((5 - food.0) as f32 / 3.0 - 0.2);
+            let food_goal = config.ai.food_amount_goal.value as f32;
+            let food_threshold = config.ai.food_amount_threshold.value as f32;
+            let s = clamp((food_goal - food.0 as f32) / food_goal + food_threshold);
             score.set(s);
         }
     }

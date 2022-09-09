@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     config::Config,
-    logic::components::{FoodAmount, FoodSource},
+    logic::components::{FoodAmount, FoodSource, GridCoords},
 };
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
@@ -66,6 +66,10 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
+            let coords = GridCoords {
+                x: x as f32,
+                y: y as f32,
+            };
             let tile_entity = commands
                 .spawn()
                 .insert_bundle(TileBundle {
@@ -73,6 +77,7 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
                     tilemap_id: TilemapId(tilemap_entity),
                     ..Default::default()
                 })
+                .insert(coords)
                 .id();
             tile_storage.set(&tile_pos, Some(tile_entity));
         }
