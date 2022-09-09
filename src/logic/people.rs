@@ -55,27 +55,29 @@ impl Plugin for PeoplePlugin {
     }
 }
 
-pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>, config: Res<Config>) {
     info!("People initialized");
-    commands.spawn_bundle(PersonBundle {
-        name: Name(String::from("Test guy")),
-        type_marker: Person,
-        hunger: Hunger(0.0),
-        food: FoodAmount(3),
-        position: GridCoords { x: 5.0, y: 3.0 },
-        sprite: SpriteBundle {
-            texture: asset_server.load("person.png"),
-            transform: Transform {
-                translation: Vec3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 1.0,
+    for _ in 0..config.game.starting_people.value {
+        commands.spawn_bundle(PersonBundle {
+            name: Name(String::from("Test guy")),
+            type_marker: Person,
+            hunger: Hunger(0.0),
+            food: FoodAmount(3),
+            position: GridCoords { x: 5.0, y: 3.0 },
+            sprite: SpriteBundle {
+                texture: asset_server.load("person.png"),
+                transform: Transform {
+                    translation: Vec3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    ..Default::default()
                 },
                 ..Default::default()
             },
-            ..Default::default()
-        },
-    });
+        });
+    }
 }
 
 fn hunger_system(

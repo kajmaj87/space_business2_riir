@@ -66,6 +66,7 @@ pub fn settings(
                         draw_config_value(ui, &mut config.game.growth);
                         draw_config_value(ui, &mut config.game.hunger_increase);
                         draw_config_value(ui, &mut config.game.hunger_decrease);
+                        draw_config_value(ui, &mut config.game.starting_people);
                         draw_config_value(ui, &mut config.game.person_ttl);
                 }),
             SettingsPanel::Map => add_options_grid(ui, |ui| {
@@ -108,13 +109,8 @@ fn draw_config_value<T: Numeric>(ui: &mut Ui, value: &mut ConfigValue<T>) {
 }
 
 pub fn food_statistics(mut egui_context: ResMut<EguiContext>, stats: Res<Statistics>) {
-    let food = &stats.food_history;
-    let stats: PlotPoints = food
-        .iter()
-        .enumerate()
-        .map(|(i, v)| [i as f64, *v as f64])
-        .collect();
-    let line = Line::new(stats).name("Apples");
+    let food_line = create_plot_line("Apples", &stats.food_history);
+    let people_line = create_plot_line("People", &stats.people_history);
     egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
         ui.label("world");
         Plot::new("my_plot")
@@ -123,6 +119,18 @@ pub fn food_statistics(mut egui_context: ResMut<EguiContext>, stats: Res<Statist
                 position: Corner::RightBottom,
                 ..default()
             })
-            .show(ui, |plot_ui| plot_ui.line(line));
+            .show(ui, |plot_ui| {
+                plot_ui.line(food_line);
+                plot_ui.line(people_line);
+            });
     });
+}
+
+fn create_plot_line(name: &str, values: &[u32]) -> Line {
+    let stats: PlotPoints = values
+        .iter()
+        .enumerate()
+        .map(|(i, v)| [i as f64, *v as f64])
+        .collect();
+    Line::new(stats).name(name)
 }
