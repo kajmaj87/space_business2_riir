@@ -31,6 +31,7 @@ pub struct GameConfig {
     pub hunger_decrease: ConfigValue<f32>,
     pub starting_people: ConfigValue<u32>,
     pub person_ttl: ConfigValue<u32>,
+    pub food_for_baby: ConfigValue<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Component)]

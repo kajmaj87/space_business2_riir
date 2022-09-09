@@ -132,13 +132,14 @@ fn foraging_system(
 fn breeding_system(
     mut commands: Commands,
     mut people: Query<(&mut FoodAmount, &GridCoords), With<Person>>,
+    config: Res<Config>,
 ) {
     for (mut person_food_amount, coords) in people.iter_mut() {
-        if person_food_amount.0 > 20 {
-            info!("I'm having a baby!");
-            person_food_amount.0 -= 10;
+        if person_food_amount.0 > 2 * config.game.food_for_baby.value {
+            info!("I'm having a baby! My food is: {}", person_food_amount.0);
+            person_food_amount.0 -= config.game.food_for_baby.value;
             commands.spawn_bundle(PersonBundle {
-                food: FoodAmount(10),
+                food: FoodAmount(config.game.food_for_baby.value),
                 position: GridCoords {
                     x: coords.x,
                     y: coords.y,

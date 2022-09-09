@@ -73,6 +73,11 @@
       "value": 60,
       "name": "Person TTL",
       "description": "How many frames to wait until removing dead person entity from game"
+    },
+    "food_for_baby": {
+      "value": 3,
+      "name": "Food for baby",
+      "description": "Person has to have double amount of this to create a baby. He will give this amount to it when its born"
     }
   },
   "map": {
