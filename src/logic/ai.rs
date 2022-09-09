@@ -6,7 +6,6 @@ use rand::{thread_rng, Rng};
 use crate::config::Config;
 
 use super::components::{FoodAmount, Hunger, Person};
-use super::people::init_people;
 use super::people::Forage;
 
 #[derive(Clone, Component, Debug)]
@@ -24,17 +23,16 @@ impl Plugin for AiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(BigBrainPlugin)
             // no brain without a body
-            .add_startup_system_to_stage(StartupStage::PostStartup, init_brains.after(init_people))
             .add_system_to_stage(BigBrainStage::Actions, eat_action_system)
             .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer_system)
             .add_system_to_stage(BigBrainStage::Actions, move_action_system)
-            .add_system_to_stage(BigBrainStage::Scorers, move_scorer_system);
+            .add_system_to_stage(BigBrainStage::Scorers, move_scorer_system)
+            .add_system(init_brains);
     }
 }
 
-pub fn init_brains(mut commands: Commands, query: Query<(Entity, &Person)>) {
-    info!("Brains initialized");
-    for (entity, _) in query.iter() {
+pub fn init_brains(mut commands: Commands, query: Query<Entity, (With<Person>, Without<Thinker>)>) {
+    for entity in query.iter() {
         debug!("Adding a thinker @{}", entity.id());
         commands.entity(entity).insert(
             Thinker::build()
@@ -89,7 +87,7 @@ fn eat_action_system(
                     let old_hunger = hunger.0;
                     hunger.0 -= config.game.hunger_decrease.value;
                     food.0 -= 1;
-                    info!(
+                    debug!(
                         "Person ate something, food left: {}, hunger was: {}, hunger is: {}",
                         food.0, old_hunger, hunger.0
                     );

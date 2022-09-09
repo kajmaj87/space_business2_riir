@@ -66,11 +66,11 @@
       ]
     },
     "starting_people": {
-      "value": 20,
+      "value": 3,
       "name": "Starting people"
     },
     "person_ttl": {
-      "value": 600,
+      "value": 60,
       "name": "Person TTL",
       "description": "How many frames to wait until removing dead person entity from game"
     }
@@ -96,7 +96,7 @@
   },
   "ai": {
     "food_amount_goal": {
-      "value": 30,
+      "value": 24,
       "name": "Food amount goal",
       "description": "Food amount at which the actor does not care about food at all"
     },

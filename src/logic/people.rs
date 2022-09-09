@@ -39,8 +39,18 @@ struct PersonBundle {
     hunger: Hunger,
     food: FoodAmount,
     position: GridCoords,
-    #[bundle]
-    sprite: SpriteBundle,
+}
+
+impl Default for PersonBundle {
+    fn default() -> Self {
+        PersonBundle {
+            name: Name(String::from("Test guy")),
+            type_marker: Person,
+            hunger: Hunger(0.0),
+            food: FoodAmount(3),
+            position: GridCoords { x: 5.0, y: 3.0 },
+        }
+    }
 }
 
 pub struct PeoplePlugin;
@@ -51,32 +61,15 @@ impl Plugin for PeoplePlugin {
             .add_system(hunger_system)
             .add_system(move_system)
             .add_system(foraging_system)
+            .add_system(breeding_system)
             .add_system(cleanup_system);
     }
 }
 
-pub fn init_people(mut commands: Commands, asset_server: Res<AssetServer>, config: Res<Config>) {
+pub fn init_people(mut commands: Commands, config: Res<Config>) {
     info!("People initialized");
     for _ in 0..config.game.starting_people.value {
-        commands.spawn_bundle(PersonBundle {
-            name: Name(String::from("Test guy")),
-            type_marker: Person,
-            hunger: Hunger(0.0),
-            food: FoodAmount(3),
-            position: GridCoords { x: 5.0, y: 3.0 },
-            sprite: SpriteBundle {
-                texture: asset_server.load("person.png"),
-                transform: Transform {
-                    translation: Vec3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-        });
+        commands.spawn_bundle(PersonBundle::default());
     }
 }
 
@@ -127,11 +120,31 @@ fn foraging_system(
     for (person, mut person_food_amount, coords) in people.iter_mut() {
         for (mut food_producer_amount, food_coords) in food_producers.iter_mut() {
             if coords == food_coords && food_producer_amount.0 > 0 {
-                info!("Found some food!");
+                debug!("Found some food!");
                 person_food_amount.0 += 1;
                 food_producer_amount.0 -= 1;
                 commands.entity(person).remove::<Forage>();
             }
+        }
+    }
+}
+
+fn breeding_system(
+    mut commands: Commands,
+    mut people: Query<(&mut FoodAmount, &GridCoords), With<Person>>,
+) {
+    for (mut person_food_amount, coords) in people.iter_mut() {
+        if person_food_amount.0 > 20 {
+            info!("I'm having a baby!");
+            person_food_amount.0 -= 10;
+            commands.spawn_bundle(PersonBundle {
+                food: FoodAmount(10),
+                position: GridCoords {
+                    x: coords.x,
+                    y: coords.y,
+                },
+                ..Default::default()
+            });
         }
     }
 }

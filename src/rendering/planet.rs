@@ -14,6 +14,29 @@ pub fn death_system(
     }
 }
 
+pub fn missing_sprite_setter_system(
+    mut commands: Commands,
+    query: Query<Entity, (With<Person>, Without<Handle<Image>>)>,
+    asset_server: Res<AssetServer>,
+) {
+    for person in query.iter() {
+        info!("Setting a new sprite for person");
+        let sprite = SpriteBundle {
+            texture: asset_server.load("person.png"),
+            transform: Transform {
+                translation: Vec3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 1.0,
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        commands.entity(person).insert_bundle(sprite);
+    }
+}
+
 pub fn translation_update_system(
     mut query: Query<(&GridCoords, &mut Transform), Changed<GridCoords>>,
 ) {
