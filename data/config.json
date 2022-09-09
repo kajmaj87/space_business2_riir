@@ -39,7 +39,7 @@
   },
   "game": {
     "growth": {
-      "value": 0.0001,
+      "value": 0.0005,
       "name": "Food growth speed",
       "description": "Probability that a tree will get a new apple each frame",
       "range": [
