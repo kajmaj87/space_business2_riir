@@ -20,7 +20,6 @@ pub fn missing_sprite_setter_system(
     asset_server: Res<AssetServer>,
 ) {
     for person in query.iter() {
-        info!("Setting a new sprite for person");
         let sprite = SpriteBundle {
             texture: asset_server.load("person.png"),
             transform: Transform {

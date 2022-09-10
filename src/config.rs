@@ -30,6 +30,7 @@ pub struct GameConfig {
     pub hunger_increase: ConfigValue<f32>,
     pub hunger_decrease: ConfigValue<f32>,
     pub starting_people: ConfigValue<u32>,
+    pub max_person_age: ConfigValue<u32>,
     pub person_ttl: ConfigValue<u32>,
     pub food_for_baby: ConfigValue<u32>,
 }

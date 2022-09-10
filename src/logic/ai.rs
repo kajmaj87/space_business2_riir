@@ -5,6 +5,7 @@ use rand::{thread_rng, Rng};
 
 use crate::config::Config;
 
+use super::components::Dead;
 use super::components::{FoodAmount, Hunger, Person};
 use super::people::Forage;
 
@@ -22,7 +23,6 @@ pub struct AiPlugin;
 impl Plugin for AiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(BigBrainPlugin)
-            // no brain without a body
             .add_system_to_stage(BigBrainStage::Actions, eat_action_system)
             .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer_system)
             .add_system_to_stage(BigBrainStage::Actions, move_action_system)
@@ -31,9 +31,13 @@ impl Plugin for AiPlugin {
     }
 }
 
-pub fn init_brains(mut commands: Commands, query: Query<Entity, (With<Person>, Without<Thinker>)>) {
+#[allow(clippy::type_complexity)]
+pub fn init_brains(
+    mut commands: Commands,
+    query: Query<Entity, (With<Person>, Without<ThinkerBuilder>, Without<Dead>)>,
+) {
     for entity in query.iter() {
-        debug!("Adding a thinker @{}", entity.id());
+        info!("Adding a thinker @{}", entity.id());
         commands.entity(entity).insert(
             Thinker::build()
                 .picker(FirstToScore { threshold: 0.8 })

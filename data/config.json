@@ -66,8 +66,13 @@
       ]
     },
     "starting_people": {
-      "value": 3,
+      "value": 6,
       "name": "Starting people"
+    },
+    "max_person_age": {
+      "value": 1800,
+      "name": "Max person age",
+      "description": "Each person will die after that many turns. 0 means that people do not die of old age."
     },
     "person_ttl": {
       "value": 60,

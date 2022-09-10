@@ -67,6 +67,7 @@ pub fn settings(
                         draw_config_value(ui, &mut config.game.hunger_increase);
                         draw_config_value(ui, &mut config.game.hunger_decrease);
                         draw_config_value(ui, &mut config.game.starting_people);
+                        draw_config_value(ui, &mut config.game.max_person_age);
                         draw_config_value(ui, &mut config.game.food_for_baby);
                         draw_config_value(ui, &mut config.game.person_ttl);
                 }),

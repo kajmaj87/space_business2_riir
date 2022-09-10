@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use big_brain::thinker::ThinkerBuilder;
 
 use crate::config::Config;
 
@@ -12,6 +13,9 @@ pub struct Hunger(pub f32);
 
 #[derive(Component)]
 pub struct Person;
+
+#[derive(Component)]
+pub struct Age(pub u32);
 
 #[derive(Component)]
 pub struct Dead;
@@ -36,6 +40,7 @@ pub struct GridCoords {
 struct PersonBundle {
     name: Name,
     type_marker: Person,
+    age: Age,
     hunger: Hunger,
     food: FoodAmount,
     position: GridCoords,
@@ -46,6 +51,7 @@ impl Default for PersonBundle {
         PersonBundle {
             name: Name(String::from("Test guy")),
             type_marker: Person,
+            age: Age(0),
             hunger: Hunger(0.0),
             food: FoodAmount(3),
             position: GridCoords { x: 5.0, y: 3.0 },
@@ -62,7 +68,9 @@ impl Plugin for PeoplePlugin {
             .add_system(move_system)
             .add_system(foraging_system)
             .add_system(breeding_system)
-            .add_system(cleanup_system);
+            .add_system(aging_system)
+            // we need to despawn enities separately so that no commands use them in wrong moment
+            .add_system_to_stage(CoreStage::PostUpdate, cleanup_system);
     }
 }
 
@@ -81,13 +89,36 @@ fn hunger_system(
     for (person, _, mut hunger) in query.iter_mut() {
         hunger.0 += config.game.hunger_increase.value;
         if hunger.0 > 1.0 {
-            commands.entity(person).insert(Dead);
-            commands
-                .entity(person)
-                .insert(Ttl(config.game.person_ttl.value));
-            info!("Person hunger value: {}, person has died", hunger.0);
+            mark_entity_as_dead(person, &mut commands, &config);
+            info!("Person {} has died of hunger ({})", person.id(), hunger.0);
         }
     }
+}
+
+fn aging_system(
+    mut commands: Commands,
+    mut query: Query<(Entity, &Person, &mut Age), Without<Dead>>,
+    config: Res<Config>,
+) {
+    for (person, _, mut age) in query.iter_mut() {
+        age.0 += 1;
+        if age.0 > config.game.max_person_age.value && config.game.max_person_age.value > 0 {
+            mark_entity_as_dead(person, &mut commands, &config);
+            info!(
+                "Person {} died of old age being {} turns old",
+                person.id(),
+                age.0
+            );
+        }
+    }
+}
+
+fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res<Config>) {
+    commands
+        .entity(person)
+        .insert(Dead)
+        .insert(Ttl(config.game.person_ttl.value))
+        .remove::<ThinkerBuilder>();
 }
 
 fn move_system(
