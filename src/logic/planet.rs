@@ -9,6 +9,7 @@ pub struct FoodSource();
 pub struct FoodAmount(pub u32);
 
 pub fn food_growth(mut query: Query<(Entity, &FoodSource, &mut FoodAmount)>, config: Res<Config>) {
+    info!("Running food_growth system");
     for (entity, _, mut food_amount) in query.iter_mut() {
         let r = rand::random::<f32>();
         trace!(

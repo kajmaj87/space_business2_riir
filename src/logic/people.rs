@@ -6,6 +6,7 @@ use crate::config::Config;
 use super::{
     components::{FoodSource, Name, Ttl},
     planet::FoodAmount,
+    GameState,
 };
 
 #[derive(Component)]
@@ -64,11 +65,14 @@ pub struct PeoplePlugin;
 impl Plugin for PeoplePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(init_people)
-            .add_system(hunger_system)
-            .add_system(move_system)
-            .add_system(foraging_system)
-            .add_system(breeding_system)
-            .add_system(aging_system)
+            .add_system_set(
+                SystemSet::on_update(GameState::ProcessLogic)
+                    .with_system(hunger_system)
+                    .with_system(move_system)
+                    .with_system(foraging_system)
+                    .with_system(breeding_system)
+                    .with_system(aging_system),
+            )
             // we need to despawn enities separately so that no commands use them in wrong moment
             .add_system_to_stage(CoreStage::PostUpdate, cleanup_system);
     }
@@ -86,6 +90,7 @@ fn hunger_system(
     mut query: Query<(Entity, &Person, &mut Hunger), Without<Dead>>,
     config: Res<Config>,
 ) {
+    info!("Running hunger system");
     for (person, _, mut hunger) in query.iter_mut() {
         hunger.0 += config.game.hunger_increase.value;
         if hunger.0 > 1.0 {
@@ -100,6 +105,7 @@ fn aging_system(
     mut query: Query<(Entity, &Person, &mut Age), Without<Dead>>,
     config: Res<Config>,
 ) {
+    info!("Running aging system");
     for (person, _, mut age) in query.iter_mut() {
         age.0 += 1;
         if age.0 > config.game.max_person_age.value && config.game.max_person_age.value > 0 {
@@ -148,6 +154,7 @@ fn foraging_system(
     >,
     mut food_producers: Query<(&mut FoodAmount, &GridCoords), (With<FoodSource>, Without<Person>)>,
 ) {
+    info!("Running foraging system");
     for (person, mut person_food_amount, coords) in people.iter_mut() {
         for (mut food_producer_amount, food_coords) in food_producers.iter_mut() {
             if coords == food_coords && food_producer_amount.0 > 0 {
@@ -165,6 +172,7 @@ fn breeding_system(
     mut people: Query<(&mut FoodAmount, &GridCoords), With<Person>>,
     config: Res<Config>,
 ) {
+    info!("Running breeding system");
     for (mut person_food_amount, coords) in people.iter_mut() {
         if person_food_amount.0 > 2 * config.game.food_for_baby.value {
             info!("I'm having a baby! My food is: {}", person_food_amount.0);

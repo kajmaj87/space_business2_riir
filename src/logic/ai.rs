@@ -1,6 +1,8 @@
+use ::function_name::named;
 use bevy::prelude::*;
 use big_brain::prelude::*;
 use big_brain::BigBrainPlugin;
+use iyes_loopless::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::config::Config;
@@ -8,6 +10,7 @@ use crate::config::Config;
 use super::components::Dead;
 use super::components::{FoodAmount, Hunger, Person};
 use super::people::Forage;
+use super::GameState;
 
 #[derive(Clone, Component, Debug)]
 struct Hungry;
@@ -23,16 +26,28 @@ pub struct AiPlugin;
 impl Plugin for AiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(BigBrainPlugin)
-            .add_system_to_stage(BigBrainStage::Actions, eat_action_system)
-            .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer_system)
-            .add_system_to_stage(BigBrainStage::Actions, move_action_system)
-            .add_system_to_stage(BigBrainStage::Scorers, move_scorer_system)
+            .add_system_set_to_stage(
+                BigBrainStage::Actions,
+                ConditionSet::new()
+                    .run_in_bevy_state(GameState::ProcessLogic)
+                    .with_system(eat_action_system)
+                    .with_system(move_action_system)
+                    .into(),
+            )
+            .add_system_set_to_stage(
+                BigBrainStage::Scorers,
+                ConditionSet::new()
+                    .run_in_bevy_state(GameState::ProcessLogic)
+                    .with_system(hungry_scorer_system)
+                    .with_system(move_scorer_system)
+                    .into(),
+            )
             .add_system(init_brains);
     }
 }
 
 #[allow(clippy::type_complexity)]
-pub fn init_brains(
+fn init_brains(
     mut commands: Commands,
     query: Query<Entity, (With<Person>, Without<ThinkerBuilder>, Without<Dead>)>,
 ) {
@@ -47,10 +62,12 @@ pub fn init_brains(
     }
 }
 
+#[named]
 fn move_action_system(
     mut commands: Commands,
     mut query: Query<(&Actor, &mut ActionState, &MoveAction)>,
 ) {
+    info!("Running {} system", function_name!());
     let mut random = thread_rng();
     for (Actor(actor), state, _move) in query.iter_mut() {
         just_execute(state, || {
@@ -64,11 +81,13 @@ fn move_action_system(
     }
 }
 
+#[named]
 fn move_scorer_system(
     food_amount: Query<&FoodAmount>,
     mut query: Query<(&Actor, &mut Score), With<MoveNeed>>,
     config: Res<Config>,
 ) {
+    info!("Running {} system", function_name!());
     for (Actor(actor), mut score) in query.iter_mut() {
         if let Ok(food) = food_amount.get(*actor) {
             let food_goal = config.ai.food_amount_goal.value as f32;
@@ -79,11 +98,13 @@ fn move_scorer_system(
     }
 }
 
+#[named]
 fn eat_action_system(
     mut hungers: Query<(&mut Hunger, &mut FoodAmount)>,
     mut query: Query<(&Actor, &mut ActionState, &Eat)>,
     config: Res<Config>,
 ) {
+    info!("Running {} system", function_name!());
     for (Actor(actor), state, _eat) in query.iter_mut() {
         if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
             just_execute(state, || {
@@ -101,10 +122,12 @@ fn eat_action_system(
     }
 }
 
+#[named]
 fn hungry_scorer_system(
     hungers: Query<&Hunger>,
     mut query: Query<(&Actor, &mut Score), With<Hungry>>,
 ) {
+    info!("Running {} system", function_name!());
     for (Actor(actor), mut score) in query.iter_mut() {
         if let Ok(hunger) = hungers.get(*actor) {
             // The score here must be between 0.0 and 1.0.

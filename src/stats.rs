@@ -1,9 +1,10 @@
 pub mod components;
 mod economy;
 
-use bevy::prelude::{App, Plugin};
+use bevy::prelude::{App, CoreStage, Plugin};
+use iyes_loopless::prelude::*;
 
-use crate::stats;
+use crate::{logic::GameState, stats};
 
 pub struct StatsPlugin;
 
@@ -13,6 +14,9 @@ impl Plugin for StatsPlugin {
             food_history: vec![],
             people_history: vec![],
         })
-        .add_system(stats::economy::food_statistics);
+        .add_system_to_stage(
+            CoreStage::PostUpdate,
+            stats::economy::food_statistics.run_in_bevy_state(GameState::ProcessLogic),
+        );
     }
 }

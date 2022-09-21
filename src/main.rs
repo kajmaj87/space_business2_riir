@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate enum_display_derive;
 use bevy::{log::LogSettings, prelude::*, render::texture::ImageSettings};
+use logic::GameState;
 
 mod config;
 mod debug;
@@ -23,5 +24,6 @@ fn main() {
         .add_plugin(logic::LogicPlugin)
         .add_plugin(stats::StatsPlugin)
         .add_plugin(rendering::RenderingPlugin)
+        .add_state(GameState::ProcessLogic)
         .run();
 }
