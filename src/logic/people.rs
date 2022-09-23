@@ -1,5 +1,7 @@
+use ::function_name::named;
 use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
+use iyes_loopless::prelude::*;
 
 use crate::config::Config;
 
@@ -65,13 +67,19 @@ pub struct PeoplePlugin;
 impl Plugin for PeoplePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(init_people)
+            .add_system(
+                move_system
+                    .run_in_bevy_state(GameState::ProcessLogic)
+                    .label("movement"),
+            )
             .add_system_set(
-                SystemSet::on_update(GameState::ProcessLogic)
-                    .with_system(hunger_system)
-                    .with_system(move_system)
+                ConditionSet::new()
+                    .run_in_bevy_state(GameState::ProcessLogic)
+                    .after("movement")
                     .with_system(foraging_system)
                     .with_system(breeding_system)
-                    .with_system(aging_system),
+                    .with_system(aging_system)
+                    .into(),
             )
             // we need to despawn enities separately so that no commands use them in wrong moment
             .add_system_to_stage(CoreStage::PostUpdate, cleanup_system);
@@ -85,27 +93,13 @@ pub fn init_people(mut commands: Commands, config: Res<Config>) {
     }
 }
 
-fn hunger_system(
-    mut commands: Commands,
-    mut query: Query<(Entity, &Person, &mut Hunger), Without<Dead>>,
-    config: Res<Config>,
-) {
-    info!("Running hunger system");
-    for (person, _, mut hunger) in query.iter_mut() {
-        hunger.0 += config.game.hunger_increase.value;
-        if hunger.0 > 1.0 {
-            mark_entity_as_dead(person, &mut commands, &config);
-            info!("Person {} has died of hunger ({})", person.id(), hunger.0);
-        }
-    }
-}
-
+#[named]
 fn aging_system(
     mut commands: Commands,
     mut query: Query<(Entity, &Person, &mut Age), Without<Dead>>,
     config: Res<Config>,
 ) {
-    info!("Running aging system");
+    info!("Running {}", function_name!());
     for (person, _, mut age) in query.iter_mut() {
         age.0 += 1;
         if age.0 > config.game.max_person_age.value && config.game.max_person_age.value > 0 {
@@ -127,11 +121,13 @@ fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res<Con
         .remove::<ThinkerBuilder>();
 }
 
+#[named]
 fn move_system(
     mut commands: Commands,
     mut query: Query<(Entity, &Move, &mut GridCoords)>,
     config: Res<Config>,
 ) {
+    info!("Running {}", function_name!());
     for (person, move_component, mut coords) in query.iter_mut() {
         commands.entity(person).remove::<Move>();
         let newx = move_component.dx + coords.x;
@@ -146,6 +142,7 @@ fn move_system(
 }
 
 #[allow(clippy::type_complexity)]
+#[named]
 fn foraging_system(
     mut commands: Commands,
     mut people: Query<
@@ -154,7 +151,7 @@ fn foraging_system(
     >,
     mut food_producers: Query<(&mut FoodAmount, &GridCoords), (With<FoodSource>, Without<Person>)>,
 ) {
-    info!("Running foraging system");
+    info!("Running {}", function_name!());
     for (person, mut person_food_amount, coords) in people.iter_mut() {
         for (mut food_producer_amount, food_coords) in food_producers.iter_mut() {
             if coords == food_coords && food_producer_amount.0 > 0 {
@@ -167,12 +164,13 @@ fn foraging_system(
     }
 }
 
+#[named]
 fn breeding_system(
     mut commands: Commands,
     mut people: Query<(&mut FoodAmount, &GridCoords), With<Person>>,
     config: Res<Config>,
 ) {
-    info!("Running breeding system");
+    info!("Running {}", function_name!());
     for (mut person_food_amount, coords) in people.iter_mut() {
         if person_food_amount.0 > 2 * config.game.food_for_baby.value {
             info!("I'm having a baby! My food is: {}", person_food_amount.0);

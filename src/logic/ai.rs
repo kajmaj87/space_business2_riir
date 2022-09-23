@@ -8,14 +8,10 @@ use rand::{thread_rng, Rng};
 use crate::config::Config;
 
 use super::components::Dead;
-use super::components::{FoodAmount, Hunger, Person};
+use super::components::{FoodAmount, Person};
 use super::people::Forage;
 use super::GameState;
 
-#[derive(Clone, Component, Debug)]
-struct Hungry;
-#[derive(Clone, Component, Debug)]
-struct Eat;
 #[derive(Clone, Component, Debug)]
 struct MoveNeed;
 #[derive(Clone, Component, Debug)]
@@ -30,7 +26,6 @@ impl Plugin for AiPlugin {
                 BigBrainStage::Actions,
                 ConditionSet::new()
                     .run_in_bevy_state(GameState::ProcessLogic)
-                    .with_system(eat_action_system)
                     .with_system(move_action_system)
                     .into(),
             )
@@ -38,7 +33,6 @@ impl Plugin for AiPlugin {
                 BigBrainStage::Scorers,
                 ConditionSet::new()
                     .run_in_bevy_state(GameState::ProcessLogic)
-                    .with_system(hungry_scorer_system)
                     .with_system(move_scorer_system)
                     .into(),
             )
@@ -56,7 +50,6 @@ fn init_brains(
         commands.entity(entity).insert(
             Thinker::build()
                 .picker(FirstToScore { threshold: 0.8 })
-                .when(Hungry, Eat)
                 .when(MoveNeed, MoveAction),
         );
     }
@@ -71,6 +64,7 @@ fn move_action_system(
     let mut random = thread_rng();
     for (Actor(actor), state, _move) in query.iter_mut() {
         just_execute(state, || {
+            info!("Moving actor @{}", actor.id());
             let dx = random.gen_range(-1..=1) as f32;
             let dy = random.gen_range(-1..=1) as f32;
             commands
@@ -93,46 +87,8 @@ fn move_scorer_system(
             let food_goal = config.ai.food_amount_goal.value as f32;
             let food_threshold = config.ai.food_amount_threshold.value as f32;
             let s = clamp((food_goal - food.0 as f32) / food_goal + food_threshold);
+            info!("Move score for actor @{} is {}", actor.id(), s);
             score.set(s);
-        }
-    }
-}
-
-#[named]
-fn eat_action_system(
-    mut hungers: Query<(&mut Hunger, &mut FoodAmount)>,
-    mut query: Query<(&Actor, &mut ActionState, &Eat)>,
-    config: Res<Config>,
-) {
-    info!("Running {} system", function_name!());
-    for (Actor(actor), state, _eat) in query.iter_mut() {
-        if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
-            just_execute(state, || {
-                if food.0 > 0 {
-                    let old_hunger = hunger.0;
-                    hunger.0 -= config.game.hunger_decrease.value;
-                    food.0 -= 1;
-                    debug!(
-                        "Person ate something, food left: {}, hunger was: {}, hunger is: {}",
-                        food.0, old_hunger, hunger.0
-                    );
-                }
-            })
-        }
-    }
-}
-
-#[named]
-fn hungry_scorer_system(
-    hungers: Query<&Hunger>,
-    mut query: Query<(&Actor, &mut Score), With<Hungry>>,
-) {
-    info!("Running {} system", function_name!());
-    for (Actor(actor), mut score) in query.iter_mut() {
-        if let Ok(hunger) = hungers.get(*actor) {
-            // The score here must be between 0.0 and 1.0.
-            let s = clamp(hunger.0);
-            score.set(s * s);
         }
     }
 }
@@ -140,10 +96,10 @@ fn hungry_scorer_system(
 fn just_execute(mut state: Mut<ActionState>, f: impl FnOnce()) {
     match *state {
         ActionState::Requested => {
-            *state = ActionState::Executing;
+            f();
+            *state = ActionState::Success;
         }
         ActionState::Executing => {
-            f();
             *state = ActionState::Success;
         }
         ActionState::Cancelled => {
