@@ -11,6 +11,8 @@ use super::components::Dead;
 use super::components::{FoodAmount, Person};
 use super::people::Forage;
 use super::GameState;
+use super::TurnPhase;
+use super::TurnStep;
 
 #[derive(Clone, Component, Debug)]
 struct MoveNeed;
@@ -25,15 +27,15 @@ impl Plugin for AiPlugin {
             .add_system_set_to_stage(
                 BigBrainStage::Actions,
                 ConditionSet::new()
-                    .run_in_bevy_state(GameState::ProcessLogic)
-                    .with_system(move_action_system)
+                    .run_in_bevy_state((TurnPhase::PreparePlanet, TurnStep::Process))
+                    .with_system(forage_action)
                     .into(),
             )
             .add_system_set_to_stage(
                 BigBrainStage::Scorers,
                 ConditionSet::new()
-                    .run_in_bevy_state(GameState::ProcessLogic)
-                    .with_system(move_scorer_system)
+                    .run_in_bevy_state((TurnPhase::PreparePlanet, TurnStep::Process))
+                    .with_system(forage_scorer)
                     .into(),
             )
             .add_system(init_brains);
@@ -56,7 +58,7 @@ fn init_brains(
 }
 
 #[named]
-fn move_action_system(
+fn forage_action(
     mut commands: Commands,
     mut query: Query<(&Actor, &mut ActionState, &MoveAction)>,
 ) {
@@ -65,18 +67,18 @@ fn move_action_system(
     for (Actor(actor), state, _move) in query.iter_mut() {
         just_execute(state, || {
             info!("Moving actor @{}", actor.id());
-            let dx = random.gen_range(-1..=1) as f32;
-            let dy = random.gen_range(-1..=1) as f32;
+            let x = random.gen_range(-1..=1) as f32;
+            let y = random.gen_range(-1..=1) as f32;
             commands
                 .entity(*actor)
-                .insert(super::components::Move { dx, dy })
+                .insert(super::components::Move { x, y })
                 .insert(Forage);
         })
     }
 }
 
 #[named]
-fn move_scorer_system(
+fn forage_scorer(
     food_amount: Query<&FoodAmount>,
     mut query: Query<(&Actor, &mut Score), With<MoveNeed>>,
     config: Res<Config>,
@@ -87,7 +89,7 @@ fn move_scorer_system(
             let food_goal = config.ai.food_amount_goal.value as f32;
             let food_threshold = config.ai.food_amount_threshold.value as f32;
             let s = clamp((food_goal - food.0 as f32) / food_goal + food_threshold);
-            info!("Move score for actor @{} is {}", actor.id(), s);
+            info!("Forage score for actor @{} is {}", actor.id(), s);
             score.set(s);
         }
     }

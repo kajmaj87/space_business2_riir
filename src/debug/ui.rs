@@ -16,15 +16,7 @@ pub fn debug_window(
         if let Some(average) = fps.average() {
             egui::Window::new("Debug").show(egui_context.ctx_mut(), |ui| {
                 ui.label(format!("Rendering @{:.1}fps", average));
-                ui.label(format!(
-                    "Theoretical max population: {:.1}",
-                    config.map.size_x.value as f32
-                        * config.map.size_y.value as f32
-                        * config.map.tree_tile_probability.value
-                        * config.game.growth.value
-                        * config.game.hunger_decrease.value
-                        / config.game.hunger_increase.value
-                ))
+                ui.label(format!("Theoretical max population: NEED RECALCULATION"))
             });
         }
     }

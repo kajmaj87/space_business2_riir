@@ -4,7 +4,10 @@ mod economy;
 use bevy::prelude::{App, CoreStage, Plugin};
 use iyes_loopless::prelude::*;
 
-use crate::{logic::GameState, stats};
+use crate::{
+    logic::{TurnPhase, TurnStep},
+    stats,
+};
 
 pub struct StatsPlugin;
 
@@ -16,7 +19,8 @@ impl Plugin for StatsPlugin {
         })
         .add_system_to_stage(
             CoreStage::PostUpdate,
-            stats::economy::food_statistics.run_in_bevy_state(GameState::ProcessLogic),
+            stats::economy::food_statistics
+                .run_in_bevy_state((TurnPhase::PreparePlanet, TurnStep::Process)),
         );
     }
 }

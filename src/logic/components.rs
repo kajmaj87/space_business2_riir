@@ -1,3 +1,4 @@
+pub use super::economy::{Job, Resource, Workplace};
 pub use super::people::{Dead, GridCoords, Hunger, Move, Person};
 pub use super::planet::{FoodAmount, FoodSource};
 use bevy::prelude::*;

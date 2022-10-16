@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     config::Config,
-    logic::components::{FoodAmount, FoodSource, GridCoords},
+    logic::components::{FoodAmount, FoodSource, GridCoords, Job, Resource, Workplace},
 };
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
@@ -33,7 +33,16 @@ pub fn randomize_tiles(
             commands
                 .entity(entity)
                 .insert(FoodSource())
-                .insert(FoodAmount(food_amount));
+                .insert(FoodAmount(food_amount))
+                .insert(Workplace {
+                    job_template: Job {
+                        payout: food_amount * 5,
+                        payout_type: Resource::Food,
+                        position: todo!(),
+                        taken_by: Option::None,
+                    },
+                    amount_of_jobs: 1,
+                });
         }
     }
     info!("Tiles were randomized");
@@ -99,11 +108,6 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
             storage: tile_storage,
             texture: TilemapTexture(texture_handle),
             tile_size,
-            // transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-            //     &tilemap_size,
-            //     &tile_size,
-            //     0.0,
-            // ),
             ..Default::default()
         });
     info!("Tiles were set up");

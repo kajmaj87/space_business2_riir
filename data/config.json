@@ -39,12 +39,12 @@
   },
   "game": {
     "growth": {
-      "value": 0.005,
+      "value": 6,
       "name": "Food growth speed",
-      "description": "Probability that a tree will get a new apple each frame",
+      "description": "If d6 dice roll is bigger or equal to this value we will have some growth this turn",
       "range": [
-        0.0,
-        0.01
+        1,
+        6
       ]
     },
     "hunger_increase": {

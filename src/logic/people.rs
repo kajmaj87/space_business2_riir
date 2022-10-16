@@ -8,7 +8,7 @@ use crate::config::Config;
 use super::{
     components::{FoodSource, Name, Ttl},
     planet::FoodAmount,
-    GameState,
+    TurnPhase, TurnStep,
 };
 
 #[derive(Component)]
@@ -25,8 +25,8 @@ pub struct Dead;
 
 #[derive(Component)]
 pub struct Move {
-    pub dx: f32,
-    pub dy: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
 #[derive(Component)]
@@ -69,12 +69,12 @@ impl Plugin for PeoplePlugin {
         app.add_startup_system(init_people)
             .add_system(
                 move_system
-                    .run_in_bevy_state(GameState::ProcessLogic)
+                    .run_in_bevy_state((TurnPhase::PreparePlanet, TurnStep::Process))
                     .label("movement"),
             )
             .add_system_set(
                 ConditionSet::new()
-                    .run_in_bevy_state(GameState::ProcessLogic)
+                    .run_in_bevy_state((TurnPhase::PreparePlanet, TurnStep::Process))
                     .after("movement")
                     .with_system(foraging_system)
                     .with_system(breeding_system)
@@ -122,22 +122,12 @@ fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res<Con
 }
 
 #[named]
-fn move_system(
-    mut commands: Commands,
-    mut query: Query<(Entity, &Move, &mut GridCoords)>,
-    config: Res<Config>,
-) {
+fn move_system(mut commands: Commands, mut query: Query<(Entity, &Move, &mut GridCoords)>) {
     info!("Running {}", function_name!());
     for (person, move_component, mut coords) in query.iter_mut() {
         commands.entity(person).remove::<Move>();
-        let newx = move_component.dx + coords.x;
-        let newy = move_component.dy + coords.y;
-        if 0.0 <= newx && newx <= config.map.size_x.value as f32 - 1.0 {
-            coords.x = newx;
-        }
-        if 0.0 <= newy && newy <= config.map.size_y.value as f32 - 1.0 {
-            coords.y = newy;
-        }
+        coords.x = move_component.x;
+        coords.y = move_component.y;
     }
 }
 
