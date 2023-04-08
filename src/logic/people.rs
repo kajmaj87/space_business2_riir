@@ -130,12 +130,8 @@ fn move_system(
         commands.entity(person).remove::<Move>();
         let newx = move_component.dx + coords.x;
         let newy = move_component.dy + coords.y;
-        if 0.0 <= newx && newx <= config.map.size_x.value as f32 - 1.0 {
-            coords.x = newx;
-        }
-        if 0.0 <= newy && newy <= config.map.size_y.value as f32 - 1.0 {
-            coords.y = newy;
-        }
+        coords.x = newx.rem_euclid(config.map.size_x.value as f32);
+        coords.y = newy.rem_euclid(config.map.size_y.value as f32);
     }
 }
 
