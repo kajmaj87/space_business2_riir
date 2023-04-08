@@ -10,7 +10,9 @@ use crate::{
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
 pub const TILE_SIZE: f32 = 16.0;
 
-pub fn update_food_tiles(mut query: Query<(&mut TileTextureIndex, &FoodAmount), Changed<FoodAmount>>) {
+pub fn update_food_tiles(
+    mut query: Query<(&mut TileTextureIndex, &FoodAmount), Changed<FoodAmount>>,
+) {
     for (mut tile, food_amount) in query.iter_mut() {
         tile.0 = food_amount.0 + FIRST_FOOD_TILE_INDEX;
     }
@@ -87,23 +89,21 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
         y: TILE_SIZE,
     };
 
-    commands
-        .entity(tilemap_entity)
-        .insert(TilemapBundle {
-            grid_size: TilemapGridSize {
-                x: TILE_SIZE,
-                y: TILE_SIZE,
-            },
-            size: tilemap_size,
-            storage: tile_storage,
-            texture: TilemapTexture::Single(texture_handle),
-            tile_size,
-            // transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
-            //     &tilemap_size,
-            //     &tile_size,
-            //     0.0,
-            // ),
-            ..Default::default()
-        });
+    commands.entity(tilemap_entity).insert(TilemapBundle {
+        grid_size: TilemapGridSize {
+            x: TILE_SIZE,
+            y: TILE_SIZE,
+        },
+        size: tilemap_size,
+        storage: tile_storage,
+        texture: TilemapTexture::Single(texture_handle),
+        tile_size,
+        // transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
+        //     &tilemap_size,
+        //     &tile_size,
+        //     0.0,
+        // ),
+        ..Default::default()
+    });
     info!("Tiles were set up");
 }

@@ -91,7 +91,11 @@ fn hunger_system(
         hunger.0 += config.game.hunger_increase.value;
         if hunger.0 > 1.0 {
             mark_entity_as_dead(person, &mut commands, &config);
-            info!("Person {} has died of hunger ({})", person.index(), hunger.0);
+            info!(
+                "Person {} has died of hunger ({})",
+                person.index(),
+                hunger.0
+            );
         }
     }
 }

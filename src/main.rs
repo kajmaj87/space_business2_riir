@@ -16,10 +16,14 @@ mod stats;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set( ImagePlugin::default_nearest()).set(LogPlugin {
-            filter: "info,wgpu_core=warn,wgpu_hal=warn,space_business2_riir=info".into(),
-            level: bevy::log::Level::DEBUG,
-        }))
+        .add_plugins(
+            DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(LogPlugin {
+                    filter: "info,wgpu_core=warn,wgpu_hal=warn,space_business2_riir=info".into(),
+                    level: bevy::log::Level::DEBUG,
+                }),
+        )
         .add_plugin(config::ConfigPlugin)
         .add_plugin(debug::DebugPlugin)
         .add_plugin(input::InputPlugin)
