@@ -183,13 +183,7 @@ mod tests {
         let time = Time(time);
         return (0..planet_height)
             .filter(|&i| {
-                is_in_growing_season(
-                    &time,
-                    planet_height,
-                    i,
-                    year_length,
-                    growing_season_length,
-                )
+                is_in_growing_season(&time, planet_height, i, year_length, growing_season_length)
             })
             .count()
             == growing_season_length as usize;
@@ -245,7 +239,7 @@ mod tests {
         {
             return true;
         }
-        if food_location > planet_height  || food_location < 0 {
+        if food_location > planet_height || food_location < 0 {
             return true;
         }
         if planet_height > 1000 || year_length > 1000 {

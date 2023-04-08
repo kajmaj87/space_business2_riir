@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 pub use super::people::{Dead, GridCoords, Hunger, Move, Person};
 pub use super::planet::{FoodAmount, FoodSource};
 use bevy::prelude::*;
 use bevy_derive::{Deref, DerefMut};
+use std::collections::HashMap;
 
 #[derive(Component)]
 pub struct Name(pub String);

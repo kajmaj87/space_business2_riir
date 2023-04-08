@@ -2,11 +2,11 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
+use crate::logic::components::FoodLookup;
 use crate::{
     config::Config,
     logic::components::{FoodAmount, FoodSource, GridCoords},
 };
-use crate::logic::components::FoodLookup;
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
 pub const TILE_SIZE: f32 = 16.0;
@@ -22,7 +22,8 @@ pub fn update_food_tiles(
 pub fn randomize_tiles(
     mut commands: Commands,
     mut query: Query<(Entity, &mut TileTextureIndex, &GridCoords)>,
-    config: Res<Config>,
+    // TODO remove from config
+    _config: Res<Config>,
     mut food_lookup: ResMut<FoodLookup>,
 ) {
     let mut random = thread_rng();

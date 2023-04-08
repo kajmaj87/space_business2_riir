@@ -1,7 +1,6 @@
-use std::collections::HashMap;
 use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
-use std::time::Instant;
+use std::collections::HashMap;
 
 use crate::config::Config;
 use crate::logic::components::FoodLookup;
@@ -67,7 +66,7 @@ pub struct PeoplePlugin;
 impl Plugin for PeoplePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(init_people)
-            .insert_resource(FoodLookup{
+            .insert_resource(FoodLookup {
                 food: HashMap::new(),
             })
             .add_system(hunger_system)
