@@ -6,6 +6,7 @@ use crate::{
     config::Config,
     logic::components::{FoodAmount, FoodSource, GridCoords},
 };
+use crate::logic::components::FoodLookup;
 
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
 pub const TILE_SIZE: f32 = 16.0;
@@ -20,11 +21,12 @@ pub fn update_food_tiles(
 
 pub fn randomize_tiles(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut TileTextureIndex)>,
+    mut query: Query<(Entity, &mut TileTextureIndex, &GridCoords)>,
     config: Res<Config>,
+    mut food_lookup: ResMut<FoodLookup>,
 ) {
     let mut random = thread_rng();
-    for (entity, mut tile) in query.iter_mut() {
+    for (entity, mut tile, coords) in query.iter_mut() {
         if random.gen_range(0.0..1.0) < config.map.tree_tile_probability.value {
             tile.0 = random.gen_range(2..6);
         } else {
@@ -36,6 +38,8 @@ pub fn randomize_tiles(
                 .entity(entity)
                 .insert(FoodSource())
                 .insert(FoodAmount(food_amount));
+            // insert entity to food_lookup using coords as key
+            food_lookup.food.insert(*coords, entity);
         }
     }
     info!("Tiles were randomized");
@@ -68,10 +72,7 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
-            let coords = GridCoords {
-                x: x as f32,
-                y: y as f32,
-            };
+            let coords = GridCoords { x, y };
             let tile_entity = commands
                 .spawn(TileBundle {
                     position: tile_pos,

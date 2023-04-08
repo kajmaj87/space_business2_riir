@@ -14,6 +14,7 @@ opt-level = 3
 [dependencies]
 # run with cargo run --features bevy/dynamic_linking instead of inlcuding this feature so CICD works without issue
 bevy = { version = "0.10.1" }
+bevy_derive = "0.10.1"
 # atlas feature is needed for bevy ecs tilemap to work in WASM builds
 bevy_ecs_tilemap = { version = "0.10.0", features = ["atlas"] }
 # open_url and manage_clipboard are disabled as not yet needed

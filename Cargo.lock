@@ -3008,6 +3008,7 @@ name = "space_business2_riir"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_derive",
  "bevy_ecs_tilemap",
  "bevy_egui",
  "bevy_prototype_debug_lines",

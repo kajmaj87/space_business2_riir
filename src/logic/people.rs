@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
 use std::time::Instant;
 
 use crate::config::Config;
+use crate::logic::components::FoodLookup;
 
 use super::{
     components::{FoodSource, Name, Ttl},
@@ -23,18 +25,18 @@ pub struct Dead;
 
 #[derive(Component)]
 pub struct Move {
-    pub dx: f32,
-    pub dy: f32,
+    pub dx: i32,
+    pub dy: i32,
 }
 
 #[derive(Component)]
 pub struct Forage;
 
 // Position and GridPostion are already defined in bevy::prelude
-#[derive(Component, PartialEq)]
+#[derive(Component, PartialEq, Eq, Hash, Copy, Clone)]
 pub struct GridCoords {
-    pub x: f32,
-    pub y: f32,
+    pub x: u32,
+    pub y: u32,
 }
 
 #[derive(Bundle)]
@@ -55,7 +57,7 @@ impl Default for PersonBundle {
             age: Age(0),
             hunger: Hunger(0.0),
             food: FoodAmount(3),
-            position: GridCoords { x: 5.0, y: 3.0 },
+            position: GridCoords { x: 5, y: 3 },
         }
     }
 }
@@ -65,6 +67,9 @@ pub struct PeoplePlugin;
 impl Plugin for PeoplePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(init_people)
+            .insert_resource(FoodLookup{
+                food: HashMap::new(),
+            })
             .add_system(hunger_system)
             .add_system(move_system)
             .add_system(foraging_system)
@@ -133,11 +138,15 @@ fn move_system(
 ) {
     for (person, move_component, mut coords) in query.iter_mut() {
         commands.entity(person).remove::<Move>();
-        let newx = move_component.dx + coords.x;
-        let newy = move_component.dy + coords.y;
-        coords.x = newx.rem_euclid(config.map.size_x.value as f32);
-        coords.y = newy.rem_euclid(config.map.size_y.value as f32);
+        coords.x = add_modulo(move_component.dx, coords.x, config.map.size_x.value);
+        coords.y = add_modulo(move_component.dy, coords.y, config.map.size_y.value);
     }
+}
+
+fn add_modulo(a: i32, b: u32, z: u32) -> u32 {
+    let a = a.rem_euclid(z as i32) as u32;
+    let sum = a.wrapping_add(b);
+    sum % z
 }
 
 #[allow(clippy::type_complexity)]
@@ -148,28 +157,20 @@ fn foraging_system(
         (Changed<Forage>, With<Person>, With<Forage>),
     >,
     mut food_producers: Query<(&mut FoodAmount, &GridCoords), (With<FoodSource>, Without<Person>)>,
+    food_lookup: Res<FoodLookup>,
 ) {
-    // print size of food_producers and people and their multiplicities
-
-    info!(
-        "Iterations: {}, food producers: {}, people: {}",
-        food_producers.iter().count() * people.iter().count(),
-        food_producers.iter().count(),
-        people.iter().count()
-    );
-    // measure time of the following loop
-    let start = Instant::now();
     for (person, mut person_food_amount, coords) in people.iter_mut() {
-        for (mut food_producer_amount, food_coords) in food_producers.iter_mut() {
-            if coords == food_coords && food_producer_amount.0 > 0 {
-                debug!("Found some food!");
-                person_food_amount.0 += 1;
-                food_producer_amount.0 -= 1;
-                commands.entity(person).remove::<Forage>();
+        if let Some(food) = food_lookup.food.get(coords) {
+            if let Ok((mut food_amount, _)) = food_producers.get_mut(*food) {
+                if food_amount.0 > 0 {
+                    debug!("Found some food!");
+                    person_food_amount.0 += 1;
+                    food_amount.0 -= 1;
+                    commands.entity(person).remove::<Forage>();
+                }
             }
         }
     }
-    info!("Foraging took: {:?}", start.elapsed());
 }
 
 fn breeding_system(

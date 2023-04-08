@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 100,
+      "value": 1000,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 100,
+      "value": 1000,
       "name": "Map size y"
     },
     "tree_tile_probability": {

@@ -41,8 +41,8 @@ pub fn translation_update_system(
 ) {
     for (coords, mut transform) in query.iter_mut() {
         transform.translation = Vec3 {
-            x: coords.x * TILE_SIZE,
-            y: coords.y * TILE_SIZE,
+            x: coords.x as f32 * TILE_SIZE,
+            y: coords.y as f32 * TILE_SIZE,
             z: transform.translation.z,
         };
     }

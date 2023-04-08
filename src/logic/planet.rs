@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 
 use crate::config::Config;
 use crate::logic::people::GridCoords;
@@ -8,6 +9,11 @@ pub struct FoodSource();
 
 #[derive(Component)]
 pub struct FoodAmount(pub u32);
+
+#[derive(Resource)]
+pub struct FoodLookup {
+    pub food: HashMap<GridCoords, Entity>,
+}
 
 #[derive(Resource)]
 pub struct Time(pub u32);
@@ -56,7 +62,7 @@ pub fn time_system(mut time: ResMut<Time>) {
 fn is_in_growing_season(
     time: &Time,
     planet_height: u32,
-    food_location: f32,
+    food_location: u32,
     year_length: u32,
     growing_season_length: f32,
 ) -> bool {
@@ -68,7 +74,7 @@ fn is_in_growing_season(
     let grow_season_end = ((time.0 as f32 + year_length as f32 * growing_season_length)
         % year_length as f32)
         / year_length as f32;
-    let normalized_food_location = food_location / planet_height as f32;
+    let normalized_food_location = food_location as f32 / planet_height as f32;
     if grow_season_start < grow_season_end {
         grow_season_start <= normalized_food_location && grow_season_end > normalized_food_location
     } else {
@@ -89,7 +95,7 @@ mod tests {
         let planet_height = 50;
         let year_length = 100;
         let growing_season_length = 0.10;
-        let food_location = 0.0;
+        let food_location = 0;
         assert_eq!(
             is_in_growing_season(
                 &time,
@@ -100,7 +106,7 @@ mod tests {
             ),
             true
         );
-        let food_location = 4.0;
+        let food_location = 4;
         assert_eq!(
             is_in_growing_season(
                 &time,
@@ -111,7 +117,7 @@ mod tests {
             ),
             true
         );
-        let food_location = 5.0;
+        let food_location = 5;
         assert_eq!(
             is_in_growing_season(
                 &time,
@@ -123,7 +129,7 @@ mod tests {
             false
         );
         let time = Time(95);
-        let food_location = 48.0;
+        let food_location = 48;
         assert_eq!(
             is_in_growing_season(
                 &time,
@@ -134,7 +140,7 @@ mod tests {
             ),
             true
         );
-        let food_location = 0.0;
+        let food_location = 0;
         assert_eq!(
             is_in_growing_season(
                 &time,
@@ -145,7 +151,7 @@ mod tests {
             ),
             true
         );
-        let food_location = 3.0;
+        let food_location = 3;
         assert_eq!(
             is_in_growing_season(
                 &time,
@@ -162,7 +168,7 @@ mod tests {
     fn the_rows_that_grow_should_always_be_equal_to_growing_season_length(
         time: u32,
         planet_height: u32,
-        food_location: f32,
+        food_location: u32,
         year_length: u32,
         growing_season_length: f32,
     ) -> bool {
@@ -180,7 +186,7 @@ mod tests {
                 is_in_growing_season(
                     &time,
                     planet_height,
-                    i as f32,
+                    i,
                     year_length,
                     growing_season_length,
                 )
@@ -193,7 +199,7 @@ mod tests {
     fn increasing_time_by_one_should_move_growing_season(
         time: u32,
         planet_height: u32,
-        food_location: f32,
+        food_location: u32,
         year_length: u32,
         growing_season_length: f32,
     ) -> bool {
@@ -205,11 +211,11 @@ mod tests {
         ) {
             return true;
         }
-        return if food_location < planet_height as f32 {
+        return if food_location < planet_height {
             check_boundary_of_season(
                 planet_height,
                 food_location,
-                food_location + 1.0,
+                food_location + 1,
                 year_length,
                 growing_season_length,
                 time,
@@ -218,7 +224,7 @@ mod tests {
             check_boundary_of_season(
                 planet_height,
                 food_location,
-                0.0,
+                0,
                 year_length,
                 growing_season_length,
                 time,
@@ -228,7 +234,7 @@ mod tests {
 
     fn check_reasonable_boundaries(
         planet_height: u32,
-        food_location: f32,
+        food_location: u32,
         year_length: u32,
         growing_season_length: f32,
     ) -> bool {
@@ -239,7 +245,7 @@ mod tests {
         {
             return true;
         }
-        if food_location >= planet_height as f32 || food_location < 0.0 {
+        if food_location > planet_height  || food_location < 0 {
             return true;
         }
         if planet_height > 1000 || year_length > 1000 {
@@ -250,8 +256,8 @@ mod tests {
 
     fn check_boundary_of_season(
         planet_height: u32,
-        food_location: f32,
-        next_food_location: f32,
+        food_location: u32,
+        next_food_location: u32,
         year_length: u32,
         growing_season_length: f32,
         time: u32,

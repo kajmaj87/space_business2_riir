@@ -54,8 +54,8 @@ fn move_action_system(
     let mut random = thread_rng();
     for (Actor(actor), state, _move) in query.iter_mut() {
         just_execute(state, || {
-            let dx = random.gen_range(-1..=1) as f32;
-            let dy = random.gen_range(-1..=1) as f32;
+            let dx = random.gen_range(-1..=1);
+            let dy = random.gen_range(-1..=1);
             commands
                 .entity(*actor)
                 .insert(super::components::Move { dx, dy })

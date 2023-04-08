@@ -20,8 +20,8 @@ fn main() {
             DefaultPlugins
                 .set(ImagePlugin::default_nearest())
                 .set(LogPlugin {
-                    filter: "info,wgpu_core=warn,wgpu_hal=warn,space_business2_riir=info".into(),
-                    level: bevy::log::Level::DEBUG,
+                    filter: "info,wgpu_core=warn,wgpu_hal=warn,space_business2_riir=warn".into(),
+                    level: bevy::log::Level::WARN,
                 }),
         )
         .add_plugin(config::ConfigPlugin)
