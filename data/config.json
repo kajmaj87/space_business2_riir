@@ -1,7 +1,7 @@
 {
   "camera": {
     "move_speed": {
-      "value": 250.0,
+      "value": 1000.0,
       "name": "Move speed",
       "description": "Move speed only affects keyboard movement (WSAD)",
       "range": [
@@ -94,7 +94,7 @@
       ]
     },
     "growing_season_length": {
-      "value": 0.4,
+      "value": 0.3,
       "name": "Growing season length",
       "description": "How many frames are in one growing season",
       "range": [
@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 50,
+      "value": 100,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 50,
+      "value": 100,
       "name": "Map size y"
     },
     "tree_tile_probability": {
