@@ -69,11 +69,11 @@ fn is_in_growing_season(
         % year_length as f32)
         / year_length as f32;
     let normalized_food_location = food_location / planet_height as f32;
-    return if grow_season_start < grow_season_end {
+    if grow_season_start < grow_season_end {
         grow_season_start <= normalized_food_location && grow_season_end > normalized_food_location
     } else {
         normalized_food_location > grow_season_start || normalized_food_location < grow_season_end
-    };
+    }
 }
 
 #[cfg(test)]

@@ -72,7 +72,7 @@ fn move_scorer_system(
     for (Actor(actor), mut score) in query.iter_mut() {
         if let Ok(food) = food_amount.get(*actor) {
             let food_goal = config.ai.food_amount_goal.value as f32;
-            let food_threshold = config.ai.food_amount_threshold.value as f32;
+            let food_threshold = config.ai.food_amount_threshold.value;
             let s = clamp((food_goal - food.0 as f32) / food_goal + food_threshold);
             score.set(s);
         }
