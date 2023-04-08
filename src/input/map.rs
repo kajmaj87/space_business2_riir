@@ -10,7 +10,7 @@ use bevy::{
 
 use crate::config::Config;
 
-const MAX_ZOOM: f32 = 3.0;
+const MAX_ZOOM: f32 = 5.0;
 const MIN_ZOOM: f32 = 0.25;
 
 // A simple camera system for moving and zooming the camera.

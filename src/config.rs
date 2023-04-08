@@ -33,6 +33,8 @@ pub struct GameConfig {
     pub max_person_age: ConfigValue<u32>,
     pub person_ttl: ConfigValue<u32>,
     pub food_for_baby: ConfigValue<u32>,
+    pub year_length: ConfigValue<u32>,
+    pub growing_season_length: ConfigValue<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Component)]

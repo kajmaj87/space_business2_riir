@@ -83,15 +83,33 @@
       "value": 3,
       "name": "Food for baby",
       "description": "Person has to have double amount of this to create a baby. He will give this amount to it when its born"
+    },
+    "year_length": {
+      "value": 1000,
+      "name": "Year length",
+      "description": "How many frames are in one year",
+      "range": [
+        0,
+        10000
+      ]
+    },
+    "growing_season_length": {
+      "value": 400,
+      "name": "Growing season length",
+      "description": "How many frames are in one growing season",
+      "range": [
+        0,
+        1000
+      ]
     }
   },
   "map": {
     "size_x": {
-      "value": 10,
+      "value": 50,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 10,
+      "value": 50,
       "name": "Map size y"
     },
     "tree_tile_probability": {

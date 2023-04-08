@@ -11,6 +11,8 @@ impl Plugin for LogicPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(self::people::PeoplePlugin)
             .add_plugin(self::ai::AiPlugin)
-            .add_system(self::planet::food_growth);
+            .insert_resource(planet::Time(0))
+            .add_system(self::planet::food_growth)
+            .add_system(self::planet::time_system);
     }
 }

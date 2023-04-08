@@ -1,5 +1,8 @@
 #[macro_use]
 extern crate enum_display_derive;
+#[cfg(test)]
+#[macro_use(quickcheck)]
+extern crate quickcheck_macros;
 use bevy::{log::LogSettings, prelude::*, render::texture::ImageSettings};
 
 mod config;

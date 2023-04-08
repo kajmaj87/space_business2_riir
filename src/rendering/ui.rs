@@ -70,6 +70,8 @@ pub fn settings(
                         draw_config_value(ui, &mut config.game.max_person_age);
                         draw_config_value(ui, &mut config.game.food_for_baby);
                         draw_config_value(ui, &mut config.game.person_ttl);
+                        draw_config_value(ui, &mut config.game.year_length);
+                        draw_config_value(ui, &mut config.game.growing_season_length);
                 }),
             SettingsPanel::Map => add_options_grid(ui, |ui| {
                         draw_config_value(ui, &mut config.map.size_x);
