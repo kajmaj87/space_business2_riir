@@ -6,6 +6,8 @@ use crate::logic::components::{FoodAmount, Person};
 pub struct Statistics {
     pub food_history: Vec<u32>,
     pub people_history: Vec<u32>,
+    pub current_food: u32,
+    pub current_people: u32,
 }
 pub fn food_statistics(
     food: Query<&FoodAmount>,
@@ -22,4 +24,6 @@ pub fn food_statistics(
     }
     stats.food_history.push(food_sum);
     stats.people_history.push(people_sum);
+    stats.current_food = food_sum;
+    stats.current_people = people_sum;
 }

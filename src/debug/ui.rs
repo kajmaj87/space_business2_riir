@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_egui::{egui, EguiContexts};
-use bevy_prototype_debug_lines::*;
+// use bevy_prototype_debug_lines::*;
 
 use crate::config::Config;
 
@@ -23,16 +23,17 @@ pub fn debug_window(
                         * config.map.tree_tile_probability.value
                         * config.game.growth.value
                         * config.game.hunger_decrease.value
+                        * config.game.growing_season_length.value
                         / config.game.hunger_increase.value
                 ))
             });
         }
     }
 }
-
-pub fn debug_lines(mut lines: ResMut<DebugLines>) {
-    let start = Vec3::splat(-89.0);
-    let end = Vec3::splat(29.0);
-    let duration = 0.1; // Duration of 0 will show the line for 1 frame.
-    lines.line(start, end, duration);
-}
+//
+// pub fn debug_lines(mut lines: ResMut<DebugLines>) {
+//     let start = Vec3::splat(-89.0);
+//     let end = Vec3::splat(29.0);
+//     let duration = 0.1; // Duration of 0 will show the line for 1 frame.
+//     lines.line(start, end, duration);
+// }
