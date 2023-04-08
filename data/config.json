@@ -94,12 +94,12 @@
       ]
     },
     "growing_season_length": {
-      "value": 400,
+      "value": 0.4,
       "name": "Growing season length",
       "description": "How many frames are in one growing season",
       "range": [
-        0,
-        1000
+        0.0,
+        1.0
       ]
     }
   },
