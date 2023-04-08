@@ -27,10 +27,11 @@ pub fn randomize_tiles(
 ) {
     let mut random = thread_rng();
     for (entity, mut tile, coords) in query.iter_mut() {
-        if random.gen_range(0.0..1.0) < config.map.tree_tile_probability.value {
+        if random.gen_range(0.0..1.0) < (50.0 - ((coords.x + coords.y) as f32) * 0.4) / 100.0 {
             tile.0 = random.gen_range(2..6);
         } else {
-            tile.0 = random.gen_range(0..2);
+            // tile.0 = random.gen_range(0..2);
+            tile.0 = 0;
         }
         if (2..6).contains(&tile.0) {
             let food_amount = tile.0 - FIRST_FOOD_TILE_INDEX;

@@ -80,7 +80,7 @@
       "description": "How many frames to wait until removing dead person entity from game"
     },
     "food_for_baby": {
-      "value": 3,
+      "value": 12,
       "name": "Food for baby",
       "description": "Person has to have double amount of this to create a baby. He will give this amount to it when its born"
     },
@@ -94,7 +94,7 @@
       ]
     },
     "growing_season_length": {
-      "value": 0.3,
+      "value": 0.25,
       "name": "Growing season length",
       "description": "How many frames are in one growing season",
       "range": [
@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 1000,
+      "value": 100,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 1000,
+      "value": 100,
       "name": "Map size y"
     },
     "tree_tile_probability": {
@@ -124,7 +124,7 @@
   },
   "ai": {
     "food_amount_goal": {
-      "value": 24,
+      "value": 40,
       "name": "Food amount goal",
       "description": "Food amount at which the actor does not care about food at all"
     },
