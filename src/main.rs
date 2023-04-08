@@ -3,7 +3,9 @@ extern crate enum_display_derive;
 #[cfg(test)]
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
-use bevy::{log::LogSettings, prelude::*, render::texture::ImageSettings};
+
+use bevy::log::LogPlugin;
+use bevy::prelude::*;
 
 mod config;
 mod debug;
@@ -14,12 +16,10 @@ mod stats;
 
 fn main() {
     App::new()
-        .insert_resource(ImageSettings::default_nearest())
-        .insert_resource(LogSettings {
+        .add_plugins(DefaultPlugins.set( ImagePlugin::default_nearest()).set(LogPlugin {
             filter: "info,wgpu_core=warn,wgpu_hal=warn,space_business2_riir=info".into(),
             level: bevy::log::Level::DEBUG,
-        })
-        .add_plugins(DefaultPlugins)
+        }))
         .add_plugin(config::ConfigPlugin)
         .add_plugin(debug::DebugPlugin)
         .add_plugin(input::InputPlugin)

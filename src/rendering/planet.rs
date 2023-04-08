@@ -26,13 +26,13 @@ pub fn missing_sprite_setter_system(
                 translation: Vec3 {
                     x: 0.0,
                     y: 0.0,
-                    z: 1.0,
+                    z: 2.0,
                 },
                 ..Default::default()
             },
             ..Default::default()
         };
-        commands.entity(person).insert_bundle(sprite);
+        commands.entity(person).insert(sprite);
     }
 }
 

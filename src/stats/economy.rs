@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::logic::components::{FoodAmount, Person};
 
-#[derive(Component)]
+#[derive(Resource)]
 pub struct Statistics {
     pub food_history: Vec<u32>,
     pub people_history: Vec<u32>,

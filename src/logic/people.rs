@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
+use std::time::Instant;
 
 use crate::config::Config;
 
@@ -70,14 +71,14 @@ impl Plugin for PeoplePlugin {
             .add_system(breeding_system)
             .add_system(aging_system)
             // we need to despawn enities separately so that no commands use them in wrong moment
-            .add_system_to_stage(CoreStage::PostUpdate, cleanup_system);
+            .add_system(cleanup_system.in_base_set(CoreSet::PostUpdate));
     }
 }
 
 pub fn init_people(mut commands: Commands, config: Res<Config>) {
     info!("People initialized");
     for _ in 0..config.game.starting_people.value {
-        commands.spawn_bundle(PersonBundle::default());
+        commands.spawn(PersonBundle::default());
     }
 }
 
@@ -90,7 +91,7 @@ fn hunger_system(
         hunger.0 += config.game.hunger_increase.value;
         if hunger.0 > 1.0 {
             mark_entity_as_dead(person, &mut commands, &config);
-            info!("Person {} has died of hunger ({})", person.id(), hunger.0);
+            info!("Person {} has died of hunger ({})", person.index(), hunger.0);
         }
     }
 }
@@ -106,7 +107,7 @@ fn aging_system(
             mark_entity_as_dead(person, &mut commands, &config);
             info!(
                 "Person {} died of old age being {} turns old",
-                person.id(),
+                person.index(),
                 age.0
             );
         }
@@ -144,6 +145,16 @@ fn foraging_system(
     >,
     mut food_producers: Query<(&mut FoodAmount, &GridCoords), (With<FoodSource>, Without<Person>)>,
 ) {
+    // print size of food_producers and people and their multiplicities
+
+    info!(
+        "Iterations: {}, food producers: {}, people: {}",
+        food_producers.iter().count() * people.iter().count(),
+        food_producers.iter().count(),
+        people.iter().count()
+    );
+    // measure time of the following loop
+    let start = Instant::now();
     for (person, mut person_food_amount, coords) in people.iter_mut() {
         for (mut food_producer_amount, food_coords) in food_producers.iter_mut() {
             if coords == food_coords && food_producer_amount.0 > 0 {
@@ -154,6 +165,7 @@ fn foraging_system(
             }
         }
     }
+    info!("Foraging took: {:?}", start.elapsed());
 }
 
 fn breeding_system(
@@ -165,7 +177,7 @@ fn breeding_system(
         if person_food_amount.0 > 2 * config.game.food_for_baby.value {
             info!("I'm having a baby! My food is: {}", person_food_amount.0);
             person_food_amount.0 -= config.game.food_for_baby.value;
-            commands.spawn_bundle(PersonBundle {
+            commands.spawn(PersonBundle {
                 food: FoodAmount(config.game.food_for_baby.value),
                 position: GridCoords {
                     x: coords.x,

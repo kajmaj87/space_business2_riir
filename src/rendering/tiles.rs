@@ -10,7 +10,7 @@ use crate::{
 const FIRST_FOOD_TILE_INDEX: u32 = 2;
 pub const TILE_SIZE: f32 = 16.0;
 
-pub fn update_food_tiles(mut query: Query<(&mut TileTexture, &FoodAmount), Changed<FoodAmount>>) {
+pub fn update_food_tiles(mut query: Query<(&mut TileTextureIndex, &FoodAmount), Changed<FoodAmount>>) {
     for (mut tile, food_amount) in query.iter_mut() {
         tile.0 = food_amount.0 + FIRST_FOOD_TILE_INDEX;
     }
@@ -18,7 +18,7 @@ pub fn update_food_tiles(mut query: Query<(&mut TileTexture, &FoodAmount), Chang
 
 pub fn randomize_tiles(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut TileTexture)>,
+    mut query: Query<(Entity, &mut TileTextureIndex)>,
     config: Res<Config>,
 ) {
     let mut random = thread_rng();
@@ -40,7 +40,7 @@ pub fn randomize_tiles(
 }
 
 pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, config: Res<Config>) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let texture_handle: Handle<Image> = asset_server.load("tiles.png");
 
@@ -54,7 +54,7 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
     // it is associated with. This is done with the TilemapId component on each tile.
     // Eventually, we will insert the `TilemapBundle` bundle on the entity, which
     // will contain various necessary components, such as `TileStorage`.
-    let tilemap_entity = commands.spawn().id();
+    let tilemap_entity = commands.spawn_empty().id();
 
     // To begin creating the map we will need a `TileStorage` component.
     // This component is a grid of tile entities and is used to help keep track of individual
@@ -71,15 +71,14 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
                 y: y as f32,
             };
             let tile_entity = commands
-                .spawn()
-                .insert_bundle(TileBundle {
+                .spawn(TileBundle {
                     position: tile_pos,
                     tilemap_id: TilemapId(tilemap_entity),
                     ..Default::default()
                 })
                 .insert(coords)
                 .id();
-            tile_storage.set(&tile_pos, Some(tile_entity));
+            tile_storage.set(&tile_pos, tile_entity);
         }
     }
 
@@ -90,14 +89,14 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
 
     commands
         .entity(tilemap_entity)
-        .insert_bundle(TilemapBundle {
+        .insert(TilemapBundle {
             grid_size: TilemapGridSize {
                 x: TILE_SIZE,
                 y: TILE_SIZE,
             },
             size: tilemap_size,
             storage: tile_storage,
-            texture: TilemapTexture(texture_handle),
+            texture: TilemapTexture::Single(texture_handle),
             tile_size,
             // transform: bevy_ecs_tilemap::helpers::get_centered_transform_2d(
             //     &tilemap_size,

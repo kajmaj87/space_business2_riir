@@ -8,7 +8,7 @@ use bevy_egui::{
         plot::{Corner, Legend},
         Ui,
     },
-    EguiContext,
+    EguiContexts,
 };
 use egui::plot::{Line, Plot, PlotPoints};
 
@@ -25,12 +25,13 @@ pub enum SettingsPanel {
     Ai,
 }
 
+#[derive(Resource)]
 pub struct UiState {
     pub open_settings_panel: SettingsPanel,
 }
 
 pub fn settings(
-    mut egui_context: ResMut<EguiContext>,
+    mut egui_context: EguiContexts,
     mut config: ResMut<Config>,
     mut state: ResMut<UiState>,
 ) {
@@ -112,7 +113,7 @@ fn draw_config_value<T: Numeric>(ui: &mut Ui, value: &mut ConfigValue<T>) {
     ui.end_row();
 }
 
-pub fn food_statistics(mut egui_context: ResMut<EguiContext>, stats: Res<Statistics>) {
+pub fn food_statistics(mut egui_context: EguiContexts, stats: Res<Statistics>) {
     let food_line = create_plot_line("Apples", &stats.food_history);
     let people_line = create_plot_line("People", &stats.people_history);
     egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {

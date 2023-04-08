@@ -9,7 +9,7 @@ pub struct FoodSource();
 #[derive(Component)]
 pub struct FoodAmount(pub u32);
 
-#[derive(Component)]
+#[derive(Resource)]
 pub struct Time(pub u32);
 
 // This system will increase food amount for all food sources
@@ -40,7 +40,7 @@ pub fn food_growth(
             food_amount.0 += 1;
             debug!(
                 "Increased food amount for entity {} to total of {}",
-                entity.id(),
+                entity.index(),
                 food_amount.0
             );
         }

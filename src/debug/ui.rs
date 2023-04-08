@@ -2,13 +2,13 @@ use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_egui::{egui, EguiContext};
+use bevy_egui::{egui, EguiContexts};
 use bevy_prototype_debug_lines::*;
 
 use crate::config::Config;
 
 pub fn debug_window(
-    mut egui_context: ResMut<EguiContext>,
+    mut egui_context: EguiContexts,
     diagnostics: Res<Diagnostics>,
     config: Res<Config>,
 ) {

@@ -9,13 +9,13 @@ use super::components::Dead;
 use super::components::{FoodAmount, Hunger, Person};
 use super::people::Forage;
 
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Component, Debug, ScorerBuilder)]
 struct Hungry;
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Component, Debug, ActionBuilder)]
 struct Eat;
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Component, Debug, ScorerBuilder)]
 struct MoveNeed;
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Component, Debug, ActionBuilder)]
 struct MoveAction;
 
 pub struct AiPlugin;
@@ -23,10 +23,10 @@ pub struct AiPlugin;
 impl Plugin for AiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(BigBrainPlugin)
-            .add_system_to_stage(BigBrainStage::Actions, eat_action_system)
-            .add_system_to_stage(BigBrainStage::Scorers, hungry_scorer_system)
-            .add_system_to_stage(BigBrainStage::Actions, move_action_system)
-            .add_system_to_stage(BigBrainStage::Scorers, move_scorer_system)
+            .add_system(eat_action_system.in_set(BigBrainSet::Actions))
+            .add_system(hungry_scorer_system.in_set(BigBrainSet::Scorers))
+            .add_system(move_action_system.in_set(BigBrainSet::Actions))
+            .add_system(move_scorer_system.in_set(BigBrainSet::Scorers))
             .add_system(init_brains);
     }
 }
@@ -37,7 +37,7 @@ pub fn init_brains(
     query: Query<Entity, (With<Person>, Without<ThinkerBuilder>, Without<Dead>)>,
 ) {
     for entity in query.iter() {
-        info!("Adding a thinker @{}", entity.id());
+        info!("Adding a thinker @{}", entity.index());
         commands.entity(entity).insert(
             Thinker::build()
                 .picker(FirstToScore { threshold: 0.8 })

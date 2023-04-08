@@ -50,7 +50,7 @@ pub struct AiConfig {
     pub food_amount_threshold: ConfigValue<f32>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Component)]
+#[derive(Serialize, Deserialize, Debug, Resource)]
 pub struct Config {
     pub camera: CameraConfig,
     pub game: GameConfig,
