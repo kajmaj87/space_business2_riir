@@ -12,8 +12,7 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-# bevy = { version = "0.8", features = ["dynamic"] }
-# run with cargo run --features bevy/dynamic instead of inlcuding this feature so CICD works without issue
+# run with cargo run --features bevy/dynamic_linking instead of inlcuding this feature so CICD works without issue
 bevy = { version = "0.10.1" }
 # atlas feature is needed for bevy ecs tilemap to work in WASM builds
 bevy_ecs_tilemap = { version = "0.10.0", features = ["atlas"] }
