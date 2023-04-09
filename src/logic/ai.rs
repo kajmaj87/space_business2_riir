@@ -4,6 +4,7 @@ use big_brain::BigBrainPlugin;
 use rand::{thread_rng, Rng};
 
 use crate::config::Config;
+use crate::logic::people::mark_entity_as_dead;
 
 use super::components::Dead;
 use super::components::{FoodAmount, Hunger, Person};
@@ -11,10 +12,13 @@ use super::people::Forage;
 
 #[derive(Clone, Component, Debug, ScorerBuilder)]
 struct Hungry;
+
 #[derive(Clone, Component, Debug, ActionBuilder)]
 struct Eat;
+
 #[derive(Clone, Component, Debug, ScorerBuilder)]
 struct MoveNeed;
+
 #[derive(Clone, Component, Debug, ActionBuilder)]
 struct MoveAction;
 
@@ -82,6 +86,7 @@ fn move_scorer_system(
 }
 
 fn eat_action_system(
+    mut commands: Commands,
     mut hungers: Query<(&mut Hunger, &mut FoodAmount)>,
     mut query: Query<(&Actor, &mut ActionState, &Eat)>,
     config: Res<Config>,
@@ -89,22 +94,37 @@ fn eat_action_system(
     for (Actor(actor), state, _eat) in query.iter_mut() {
         if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
             just_execute(state, || {
-                if food.apples > 0 || food.oranges > 0 {
-                    let old_hunger = hunger.0;
-                    hunger.0 -= config.game.hunger_decrease.value;
-                    if food.apples > food.oranges {
-                        food.apples -= 1;
-                    } else {
-                        food.oranges -= 1;
-                    }
+                if hunger.apple > 1.0 && food.apples > 0 {
+                    let old_hunger = hunger.apple;
+                    hunger.apple -= config.game.hunger_decrease.value;
+                    food.apples -= 1;
                     debug!(
-                        "Person ate something, food left: {}, hunger was: {}, hunger is: {}",
+                        "Person ate something, food left: {}, hunger for apples was: {}, hunger for apples is: {}",
                         food.apples + food.oranges,
                         old_hunger,
-                        hunger.0
+                        hunger.apple
                     );
+                } else if hunger.orange > 1.0 && food.oranges > 0 {
+                    let old_hunger = hunger.orange;
+                    hunger.orange -= config.game.hunger_decrease.value;
+                    food.oranges -= 1;
+                    debug!(
+                        "Person ate something, food left: {}, hunger for oranges was: {}, hunger for oranges is: {}",
+                        food.apples + food.oranges,
+                        old_hunger,
+                        hunger.orange
+                    );
+                } else {
+                    mark_entity_as_dead(*actor, &mut commands, &config);
+                    if hunger.orange > 1.0 {
+                        info!("Person {} has died of orange hunger", actor.index());
+                    } else if hunger.apple > 1.0 {
+                        info!("Person {} has died of apple hunger", actor.index());
+                    } else {
+                        warn!("Person {} has died of unknown reason", actor.index());
+                    }
                 }
-            })
+            });
         }
     }
 }
@@ -115,8 +135,12 @@ fn hungry_scorer_system(
 ) {
     for (Actor(actor), mut score) in query.iter_mut() {
         if let Ok(hunger) = hungers.get(*actor) {
-            // The score here must be between 0.0 and 1.0.
-            let s = clamp(hunger.0);
+            // eat only if hunger is above 1.0, if nothihg to eat entity will die
+            let s = if hunger.apple > 1.0 || hunger.orange > 1.0 {
+                1.0
+            } else {
+                0.0
+            };
             score.set(s * s);
         }
     }

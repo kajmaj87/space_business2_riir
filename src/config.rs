@@ -50,12 +50,18 @@ pub struct AiConfig {
     pub food_amount_threshold: ConfigValue<f32>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Component)]
+pub struct UiConfig {
+    pub plot_time_range: ConfigValue<usize>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Resource)]
 pub struct Config {
     pub camera: CameraConfig,
     pub game: GameConfig,
     pub map: MapConfig,
     pub ai: AiConfig,
+    pub ui: UiConfig,
 }
 
 #[derive(Component)]

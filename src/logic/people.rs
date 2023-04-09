@@ -12,7 +12,10 @@ use super::{
 };
 
 #[derive(Component)]
-pub struct Hunger(pub f32);
+pub struct Hunger {
+    pub apple: f32,
+    pub orange: f32,
+}
 
 #[derive(Component)]
 pub struct Person;
@@ -55,7 +58,10 @@ impl Default for PersonBundle {
             name: Name(String::from("Test guy")),
             type_marker: Person,
             age: Age(0),
-            hunger: Hunger(0.0),
+            hunger: Hunger {
+                apple: 0.0,
+                orange: 0.0,
+            },
             food: FoodAmount {
                 apples: 3,
                 oranges: 3,
@@ -90,21 +96,10 @@ pub fn init_people(mut commands: Commands, config: Res<Config>) {
     }
 }
 
-fn hunger_system(
-    mut commands: Commands,
-    mut query: Query<(Entity, &Person, &mut Hunger), Without<Dead>>,
-    config: Res<Config>,
-) {
-    for (person, _, mut hunger) in query.iter_mut() {
-        hunger.0 += config.game.hunger_increase.value;
-        if hunger.0 > 1.0 {
-            mark_entity_as_dead(person, &mut commands, &config);
-            info!(
-                "Person {} has died of hunger ({})",
-                person.index(),
-                hunger.0
-            );
-        }
+fn hunger_system(mut query: Query<(&Person, &mut Hunger), Without<Dead>>, config: Res<Config>) {
+    for (_, mut hunger) in query.iter_mut() {
+        hunger.apple += config.game.hunger_increase.value;
+        hunger.orange += config.game.hunger_increase.value;
     }
 }
 
@@ -126,7 +121,7 @@ fn aging_system(
     }
 }
 
-fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res<Config>) {
+pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res<Config>) {
     commands
         .entity(person)
         .insert(Dead)

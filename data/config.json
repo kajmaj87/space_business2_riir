@@ -48,7 +48,7 @@
       ]
     },
     "hunger_increase": {
-      "value": 0.005,
+      "value": 0.002,
       "name": "Hunger growth",
       "description": "Hunger increase each frame",
       "range": [
@@ -57,7 +57,7 @@
       ]
     },
     "hunger_decrease": {
-      "value": 0.5,
+      "value": 1.0,
       "name": "Hunger removal",
       "description": "How much hunger will be removed after eating one item of food.",
       "range": [
@@ -66,7 +66,7 @@
       ]
     },
     "starting_people": {
-      "value": 6,
+      "value": 32,
       "name": "Starting people"
     },
     "max_person_age": {
@@ -109,7 +109,7 @@
       "name": "Map size x"
     },
     "size_y": {
-      "value": 50,
+      "value": 75,
       "name": "Map size y"
     },
     "tree_tile_probability": {
@@ -136,6 +136,13 @@
         0.0,
         1.0
       ]
+    }
+  },
+  "ui": {
+    "plot_time_range": {
+      "value": 5000,
+      "name": "Plot time range",
+      "description": "How many frames to show on the plot"
     }
   }
 }

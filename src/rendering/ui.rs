@@ -48,7 +48,7 @@ pub fn settings(
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Camera);
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Map);
             add_settings_panel(ui, &mut state.open_settings_panel, SettingsPanel::Ai);
-            let space_left = ui.available_size() - bevy_egui::egui::Vec2 { x: 45.0, y: 0.0 };
+            let space_left = ui.available_size() - egui::Vec2 { x: 45.0, y: 0.0 };
             ui.allocate_space(space_left);
             if ui.button("Save").clicked() {
                 let file_content = serde_json::to_string_pretty(config.as_ref())
@@ -59,31 +59,31 @@ pub fn settings(
         ui.separator();
         match state.open_settings_panel {
             SettingsPanel::Camera => add_options_grid(ui, |ui| {
-                        draw_config_value(ui, &mut config.camera.move_speed);
-                        draw_config_value(ui, &mut config.camera.initial_zoom);
-                        draw_config_value(ui, &mut config.camera.zoom_speed);
-                        draw_config_value(ui, &mut config.camera.zoom_sensitivity);
-                    }),
+                draw_config_value(ui, &mut config.camera.move_speed);
+                draw_config_value(ui, &mut config.camera.initial_zoom);
+                draw_config_value(ui, &mut config.camera.zoom_speed);
+                draw_config_value(ui, &mut config.camera.zoom_sensitivity);
+            }),
             SettingsPanel::Game => add_options_grid(ui, |ui| {
-                        draw_config_value(ui, &mut config.game.growth);
-                        draw_config_value(ui, &mut config.game.hunger_increase);
-                        draw_config_value(ui, &mut config.game.hunger_decrease);
-                        draw_config_value(ui, &mut config.game.starting_people);
-                        draw_config_value(ui, &mut config.game.max_person_age);
-                        draw_config_value(ui, &mut config.game.food_for_baby);
-                        draw_config_value(ui, &mut config.game.person_ttl);
-                        draw_config_value(ui, &mut config.game.year_length);
-                        draw_config_value(ui, &mut config.game.growing_season_length);
-                }),
+                draw_config_value(ui, &mut config.game.growth);
+                draw_config_value(ui, &mut config.game.hunger_increase);
+                draw_config_value(ui, &mut config.game.hunger_decrease);
+                draw_config_value(ui, &mut config.game.starting_people);
+                draw_config_value(ui, &mut config.game.max_person_age);
+                draw_config_value(ui, &mut config.game.food_for_baby);
+                draw_config_value(ui, &mut config.game.person_ttl);
+                draw_config_value(ui, &mut config.game.year_length);
+                draw_config_value(ui, &mut config.game.growing_season_length);
+            }),
             SettingsPanel::Map => add_options_grid(ui, |ui| {
-                        draw_config_value(ui, &mut config.map.size_x);
-                        draw_config_value(ui, &mut config.map.size_y);
-                        draw_config_value(ui, &mut config.map.tree_tile_probability);
-                }),
+                draw_config_value(ui, &mut config.map.size_x);
+                draw_config_value(ui, &mut config.map.size_y);
+                draw_config_value(ui, &mut config.map.tree_tile_probability);
+            }),
             SettingsPanel::Ai => add_options_grid(ui, |ui| {
-                        draw_config_value(ui, &mut config.ai.food_amount_goal);
-                        draw_config_value(ui, &mut config.ai.food_amount_threshold);
-                }),
+                draw_config_value(ui, &mut config.ai.food_amount_goal);
+                draw_config_value(ui, &mut config.ai.food_amount_threshold);
+            }),
         }
     });
 }
@@ -114,13 +114,26 @@ fn draw_config_value<T: Numeric>(ui: &mut Ui, value: &mut ConfigValue<T>) {
     ui.end_row();
 }
 
-pub fn food_statistics(mut egui_context: EguiContexts, stats: Res<Statistics>) {
-    let apple_line = create_plot_line("Apples", &stats.apple_history).color(Color32::RED);
-    let orange_line =
-        create_plot_line("Oranges", &stats.orange_history).color(Color32::from_rgb(255, 165, 0));
-    let people_line = create_plot_line("People", &stats.people_history);
+pub fn food_statistics(
+    mut egui_context: EguiContexts,
+    stats: Res<Statistics>,
+    mut config: ResMut<Config>,
+) {
+    let apple_range = get_range(&stats.apple_history, config.ui.plot_time_range.value);
+    let orange_range = get_range(&stats.orange_history, config.ui.plot_time_range.value);
+    let people_range = get_range(&stats.people_history, config.ui.plot_time_range.value);
+
+    let apples = &stats.apple_history.as_slice()[apple_range..];
+    let oranges = &stats.orange_history.as_slice()[orange_range..];
+    let people = &stats.people_history.as_slice()[people_range..];
+    let apple_line = create_plot_line("Apples", apples).color(Color32::RED);
+    let orange_line = create_plot_line("Oranges", oranges).color(Color32::from_rgb(255, 165, 0));
+    let people_line = create_plot_line("People", people);
     egui::Window::new("Plots").show(egui_context.ctx_mut(), |ui| {
         ui.label("Foods and people over time");
+        add_options_grid(ui, |ui| {
+            draw_config_value(ui, &mut config.ui.plot_time_range)
+        });
         Plot::new("foods")
             .view_aspect(2.0)
             .legend(Legend {
@@ -141,6 +154,14 @@ pub fn food_statistics(mut egui_context: EguiContexts, stats: Res<Statistics>) {
                 plot_ui.line(people_line);
             });
     });
+}
+
+fn get_range(vector: &Vec<u32>, last_n: usize) -> usize {
+    if vector.len() > last_n {
+        vector.len() - last_n
+    } else {
+        0
+    }
 }
 
 fn create_plot_line(name: &str, values: &[u32]) -> Line {
