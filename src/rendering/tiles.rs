@@ -5,41 +5,77 @@ use rand::{thread_rng, Rng};
 use crate::logic::components::FoodLookup;
 use crate::{
     config::Config,
-    logic::components::{FoodAmount, FoodSource, GridCoords},
+    logic::components::{FoodAmount, FoodSource, FoodType, GridCoords},
 };
 
-const FIRST_FOOD_TILE_INDEX: u32 = 2;
+const EMPTY_FOOD_TILE_INDEX: u32 = 2;
+const FIRST_APPLE_TILE_INDEX: u32 = 3;
+const FIRST_ORANGE_TILE_INDEX: u32 = 6;
 pub const TILE_SIZE: f32 = 16.0;
 
 pub fn update_food_tiles(
-    mut query: Query<(&mut TileTextureIndex, &FoodAmount), Changed<FoodAmount>>,
+    mut query: Query<(&mut TileTextureIndex, &FoodAmount, &FoodSource), Changed<FoodAmount>>,
 ) {
-    for (mut tile, food_amount) in query.iter_mut() {
-        tile.0 = food_amount.0 + FIRST_FOOD_TILE_INDEX;
+    for (mut tile, food_amount, source) in query.iter_mut() {
+        match source.0 {
+            FoodType::Apple => tile.0 = food_amount.apples + FIRST_APPLE_TILE_INDEX - 1,
+            FoodType::Orange => tile.0 = food_amount.oranges + FIRST_ORANGE_TILE_INDEX - 1,
+        }
+        if food_amount.apples == 0 && food_amount.oranges == 0 {
+            tile.0 = EMPTY_FOOD_TILE_INDEX;
+        }
     }
 }
 
 pub fn randomize_tiles(
     mut commands: Commands,
     mut query: Query<(Entity, &mut TileTextureIndex, &GridCoords)>,
-    // TODO remove from config
-    _config: Res<Config>,
+    config: Res<Config>,
     mut food_lookup: ResMut<FoodLookup>,
 ) {
     let mut random = thread_rng();
     for (entity, mut tile, coords) in query.iter_mut() {
-        if random.gen_range(0.0..1.0) < (50.0 - ((coords.x + coords.y) as f32) * 0.4) / 100.0 {
-            tile.0 = random.gen_range(2..6);
+        let source;
+        let food_amount;
+        let threshold = 0.6;
+        let sparsing_speed = 0.5;
+        let size = config.map.size_x.value as f32;
+        if random.gen_range(0.0..1.0)
+            < (size * threshold - ((coords.x + coords.y) as f32) * sparsing_speed) / size
+        {
+            tile.0 = random.gen_range(3..6);
+            source = FoodSource(FoodType::Apple);
+            food_amount = FoodAmount {
+                apples: tile.0 - FIRST_APPLE_TILE_INDEX,
+                oranges: 0,
+            };
+        } else if random.gen_range(0.0..1.0)
+            < (size * threshold
+                - (((config.map.size_x.value - coords.x) + (config.map.size_y.value - coords.y))
+                    as f32)
+                    * sparsing_speed)
+                / size
+        {
+            tile.0 = random.gen_range(6..9);
+            source = FoodSource(FoodType::Orange);
+            food_amount = FoodAmount {
+                apples: 0,
+                oranges: tile.0 - FIRST_ORANGE_TILE_INDEX,
+            };
         } else {
-            // tile.0 = random.gen_range(0..2);
             tile.0 = 0;
+            // this will never happen
+            source = FoodSource(FoodType::Apple);
+            food_amount = FoodAmount {
+                apples: 0,
+                oranges: 0,
+            };
         }
-        if (2..6).contains(&tile.0) {
-            let food_amount = tile.0 - FIRST_FOOD_TILE_INDEX;
-            commands
-                .entity(entity)
-                .insert(FoodSource())
-                .insert(FoodAmount(food_amount));
+        // if food_amount.apples == 0 && food_amount.oranges == 0 {
+        //     tile.0 = EMPTY_FOOD_TILE_INDEX;
+        // }
+        if (2..9).contains(&tile.0) {
+            commands.entity(entity).insert(source).insert(food_amount);
             // insert entity to food_lookup using coords as key
             food_lookup.food.insert(*coords, entity);
         }

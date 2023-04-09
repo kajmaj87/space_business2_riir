@@ -1,5 +1,5 @@
 pub use super::people::{Dead, GridCoords, Hunger, Move, Person};
-pub use super::planet::{FoodAmount, FoodSource};
+pub use super::planet::{FoodAmount, FoodSource, FoodType};
 use bevy::prelude::*;
 use bevy_derive::{Deref, DerefMut};
 use std::collections::HashMap;

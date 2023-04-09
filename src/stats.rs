@@ -9,9 +9,12 @@ pub struct StatsPlugin;
 impl Plugin for StatsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(economy::Statistics {
-            food_history: vec![],
+            apple_history: vec![],
+            orange_history: vec![],
             people_history: vec![],
             current_food: 0,
+            current_apples: 0,
+            current_oranges: 0,
             current_people: 0,
         })
         .add_system(economy::food_statistics)

@@ -5,10 +5,19 @@ use crate::config::Config;
 use crate::logic::people::GridCoords;
 
 #[derive(Component)]
-pub struct FoodSource();
+pub enum FoodType {
+    Apple,
+    Orange,
+}
 
 #[derive(Component)]
-pub struct FoodAmount(pub u32);
+pub struct FoodSource(pub FoodType);
+
+#[derive(Component)]
+pub struct FoodAmount {
+    pub apples: u32,
+    pub oranges: u32,
+}
 
 #[derive(Resource)]
 pub struct FoodLookup {
@@ -24,17 +33,15 @@ pub fn food_growth(
     config: Res<Config>,
     time: Res<Time>,
 ) {
-    for (entity, _, mut food_amount, coords) in query.iter_mut() {
+    for (_, source, mut food_amount, coords) in query.iter_mut() {
         let r = rand::random::<f32>();
-        trace!(
-            "Found some growing entities: rand: {} growth: {} food: {}",
-            r,
-            config.game.growth.value,
-            food_amount.0
-        );
+        let food = match source.0 {
+            FoodType::Apple => food_amount.apples,
+            FoodType::Orange => food_amount.oranges,
+        };
         // increase food amount if random number is less than growth rate
         if r < config.game.growth.value
-            && food_amount.0 < 3
+            && food < 3
             && is_in_growing_season(
                 &time,
                 config.map.size_y.value,
@@ -43,12 +50,10 @@ pub fn food_growth(
                 config.game.growing_season_length.value,
             )
         {
-            food_amount.0 += 1;
-            debug!(
-                "Increased food amount for entity {} to total of {}",
-                entity.index(),
-                food_amount.0
-            );
+            match source.0 {
+                FoodType::Apple => food_amount.apples += 1,
+                FoodType::Orange => food_amount.oranges += 1,
+            }
         }
     }
 }

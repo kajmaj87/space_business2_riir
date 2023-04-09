@@ -1,6 +1,7 @@
 use std::{fmt::Display, fs};
 
 use bevy::prelude::*;
+use bevy_egui::egui::Color32;
 use bevy_egui::{
     egui::{
         self,
@@ -114,18 +115,29 @@ fn draw_config_value<T: Numeric>(ui: &mut Ui, value: &mut ConfigValue<T>) {
 }
 
 pub fn food_statistics(mut egui_context: EguiContexts, stats: Res<Statistics>) {
-    let food_line = create_plot_line("Apples", &stats.food_history);
+    let apple_line = create_plot_line("Apples", &stats.apple_history).color(Color32::RED);
+    let orange_line =
+        create_plot_line("Oranges", &stats.orange_history).color(Color32::from_rgb(255, 165, 0));
     let people_line = create_plot_line("People", &stats.people_history);
-    egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-        ui.label("world");
-        Plot::new("my_plot")
+    egui::Window::new("Plots").show(egui_context.ctx_mut(), |ui| {
+        ui.label("Foods and people over time");
+        Plot::new("foods")
             .view_aspect(2.0)
             .legend(Legend {
-                position: Corner::RightTop,
+                position: Corner::LeftTop,
                 ..default()
             })
             .show(ui, |plot_ui| {
-                plot_ui.line(food_line);
+                plot_ui.line(apple_line);
+                plot_ui.line(orange_line);
+            });
+        Plot::new("people")
+            .view_aspect(2.0)
+            .legend(Legend {
+                position: Corner::LeftTop,
+                ..default()
+            })
+            .show(ui, |plot_ui| {
                 plot_ui.line(people_line);
             });
     });

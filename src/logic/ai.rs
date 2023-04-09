@@ -73,7 +73,9 @@ fn move_scorer_system(
         if let Ok(food) = food_amount.get(*actor) {
             let food_goal = config.ai.food_amount_goal.value as f32;
             let food_threshold = config.ai.food_amount_threshold.value;
-            let s = clamp((food_goal - food.0 as f32) / food_goal + food_threshold);
+            let s = clamp(
+                (food_goal - food.apples as f32 - food.oranges as f32) / food_goal + food_threshold,
+            );
             score.set(s);
         }
     }
@@ -87,13 +89,19 @@ fn eat_action_system(
     for (Actor(actor), state, _eat) in query.iter_mut() {
         if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
             just_execute(state, || {
-                if food.0 > 0 {
+                if food.apples > 0 || food.oranges > 0 {
                     let old_hunger = hunger.0;
                     hunger.0 -= config.game.hunger_decrease.value;
-                    food.0 -= 1;
+                    if food.apples > food.oranges {
+                        food.apples -= 1;
+                    } else {
+                        food.oranges -= 1;
+                    }
                     debug!(
                         "Person ate something, food left: {}, hunger was: {}, hunger is: {}",
-                        food.0, old_hunger, hunger.0
+                        food.apples + food.oranges,
+                        old_hunger,
+                        hunger.0
                     );
                 }
             })

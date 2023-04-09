@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use crate::config::Config;
 use crate::logic::components::FoodLookup;
+use crate::logic::planet::FoodType;
 
 use super::{
     components::{FoodSource, Name, Ttl},
@@ -55,7 +56,10 @@ impl Default for PersonBundle {
             type_marker: Person,
             age: Age(0),
             hunger: Hunger(0.0),
-            food: FoodAmount(3),
+            food: FoodAmount {
+                apples: 3,
+                oranges: 3,
+            },
             position: GridCoords { x: 5, y: 3 },
         }
     }
@@ -155,18 +159,28 @@ fn foraging_system(
         (Entity, &mut FoodAmount, &GridCoords),
         (Changed<Forage>, With<Person>, With<Forage>),
     >,
-    mut food_producers: Query<(&mut FoodAmount, &GridCoords), (With<FoodSource>, Without<Person>)>,
+    mut food_producers: Query<(&mut FoodAmount, &GridCoords, &FoodSource), Without<Person>>,
     food_lookup: Res<FoodLookup>,
 ) {
     for (person, mut person_food_amount, coords) in people.iter_mut() {
         if let Some(food) = food_lookup.food.get(coords) {
-            if let Ok((mut food_amount, _)) = food_producers.get_mut(*food) {
-                if food_amount.0 > 0 {
-                    debug!("Found some food!");
-                    person_food_amount.0 += 1;
-                    food_amount.0 -= 1;
-                    commands.entity(person).remove::<Forage>();
+            if let Ok((mut food_amount, _, source)) = food_producers.get_mut(*food) {
+                debug!("Found some food!");
+                match source.0 {
+                    FoodType::Apple => {
+                        if food_amount.apples > 0 {
+                            person_food_amount.apples += 1;
+                            food_amount.apples -= 1;
+                        }
+                    }
+                    FoodType::Orange => {
+                        if food_amount.oranges > 0 {
+                            person_food_amount.oranges += 1;
+                            food_amount.oranges -= 1;
+                        }
+                    }
                 }
+                commands.entity(person).remove::<Forage>();
             }
         }
     }
@@ -178,11 +192,22 @@ fn breeding_system(
     config: Res<Config>,
 ) {
     for (mut person_food_amount, coords) in people.iter_mut() {
-        if person_food_amount.0 > 2 * config.game.food_for_baby.value {
-            info!("I'm having a baby! My food is: {}", person_food_amount.0);
-            person_food_amount.0 -= config.game.food_for_baby.value;
+        if person_food_amount.apples + person_food_amount.oranges
+            > 2 * config.game.food_for_baby.value
+        {
+            info!(
+                "I'm having a baby! My food is: {}",
+                person_food_amount.apples + person_food_amount.oranges
+            );
+            let baby_oranges = person_food_amount.oranges / 2;
+            let baby_apples = person_food_amount.apples / 2;
+            person_food_amount.apples -= baby_apples;
+            person_food_amount.oranges -= baby_oranges;
             commands.spawn(PersonBundle {
-                food: FoodAmount(config.game.food_for_baby.value),
+                food: FoodAmount {
+                    apples: baby_apples,
+                    oranges: baby_oranges,
+                },
                 position: GridCoords {
                     x: coords.x,
                     y: coords.y,
