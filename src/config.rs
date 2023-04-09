@@ -53,6 +53,7 @@ pub struct AiConfig {
 #[derive(Serialize, Deserialize, Debug, Component)]
 pub struct UiConfig {
     pub plot_time_range: ConfigValue<usize>,
+    pub age_histogram_bins: ConfigValue<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Resource)]

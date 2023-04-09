@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use std::{fmt::Display, fs};
 
 use bevy::prelude::*;
+use bevy_egui::egui::plot::{Bar, BarChart};
 use bevy_egui::egui::Color32;
 use bevy_egui::{
     egui::{
@@ -13,6 +15,7 @@ use bevy_egui::{
 };
 use egui::plot::{Line, Plot, PlotPoints};
 
+use crate::logic::components::{Age, Dead, Person};
 use crate::{
     config::{Config, ConfigValue, CONFIG_PATH},
     stats::components::Statistics,
@@ -118,6 +121,7 @@ pub fn food_statistics(
     mut egui_context: EguiContexts,
     stats: Res<Statistics>,
     mut config: ResMut<Config>,
+    query: Query<(&Person, &Age), Without<Dead>>,
 ) {
     let apple_range = get_range(&stats.apple_history, config.ui.plot_time_range.value);
     let orange_range = get_range(&stats.orange_history, config.ui.plot_time_range.value);
@@ -129,10 +133,12 @@ pub fn food_statistics(
     let apple_line = create_plot_line("Apples", apples).color(Color32::RED);
     let orange_line = create_plot_line("Oranges", oranges).color(Color32::from_rgb(255, 165, 0));
     let people_line = create_plot_line("People", people);
+    let ages = query.iter().map(|(_, age)| age.0).collect::<Vec<_>>();
     egui::Window::new("Plots").show(egui_context.ctx_mut(), |ui| {
         ui.label("Foods and people over time");
         add_options_grid(ui, |ui| {
-            draw_config_value(ui, &mut config.ui.plot_time_range)
+            draw_config_value(ui, &mut config.ui.plot_time_range);
+            draw_config_value(ui, &mut config.ui.age_histogram_bins);
         });
         Plot::new("foods")
             .view_aspect(2.0)
@@ -153,6 +159,19 @@ pub fn food_statistics(
             .show(ui, |plot_ui| {
                 plot_ui.line(people_line);
             });
+        Plot::new("ages")
+            .view_aspect(2.0)
+            .legend(Legend {
+                position: Corner::LeftTop,
+                ..default()
+            })
+            .show(ui, |plot_ui| {
+                plot_ui.bar_chart(create_histogram(
+                    "Ages",
+                    &ages,
+                    config.ui.age_histogram_bins.value,
+                ));
+            });
     });
 }
 
@@ -170,5 +189,26 @@ fn create_plot_line(name: &str, values: &[u32]) -> Line {
         .enumerate()
         .map(|(i, v)| [i as f64, *v as f64])
         .collect();
+
     Line::new(stats).name(name)
+}
+
+fn create_histogram(name: &str, values: &[u32], bins: u32) -> BarChart {
+    let mut histogram = HashMap::new();
+    let max = values.iter().max().unwrap();
+    let min = values.iter().min().unwrap();
+    let range = max - min + 1;
+    let bin_width = (range as f64 / bins as f64).ceil() as u32;
+    for &value in values {
+        *histogram.entry((value - min) / bin_width).or_insert(0) += 1;
+    }
+    let histogram: Vec<Bar> = histogram
+        .into_iter()
+        .map(|(bin, count)| {
+            Bar::new((bin * bin_width + min) as f64, count as f64).width(bin_width as f64)
+        })
+        .collect();
+    BarChart::new(histogram)
+        .color(Color32::LIGHT_BLUE)
+        .name(name)
 }

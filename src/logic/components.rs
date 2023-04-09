@@ -1,4 +1,4 @@
-pub use super::people::{Dead, GridCoords, Hunger, Move, Person};
+pub use super::people::{Age, Dead, GridCoords, Hunger, Move, Person};
 pub use super::planet::{FoodAmount, FoodSource, FoodType};
 use bevy::prelude::*;
 use bevy_derive::{Deref, DerefMut};

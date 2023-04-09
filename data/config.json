@@ -48,7 +48,7 @@
       ]
     },
     "hunger_increase": {
-      "value": 0.002,
+      "value": 0.0005,
       "name": "Hunger growth",
       "description": "Hunger increase each frame",
       "range": [
@@ -143,6 +143,11 @@
       "value": 5000,
       "name": "Plot time range",
       "description": "How many frames to show on the plot"
+    },
+    "age_histogram_bins": {
+      "value": 10,
+      "name": "Age histogram bins",
+      "description": "How many bins to use for age histogram. 10 is a good value. Boxes will be split evenly"
     }
   }
 }
