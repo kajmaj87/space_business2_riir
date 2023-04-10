@@ -96,12 +96,12 @@ jobs:
             !space_business2_riir.d
       - name: Notify success on Discord
         if: success() && matrix.target == 'x86_64-pc-windows-gnu'
-        uses: Ilshidur/action-discord@2.4.4
+        uses: Ilshidur/action-discord@0.3.2
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_SUCCESS }}
         with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK_SUCCESS }}
-          content: |
+          args: |
             Build succeeded! :white_check_mark:
             Commit Message: "${{ github.event.head_commit.message }}"
             Artifact: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact.outputs.id }}
-          status: ${{ job.status }}
-          color: "65280"
+            Status: ${{ job.status }}
