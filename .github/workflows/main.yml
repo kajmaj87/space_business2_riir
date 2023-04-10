@@ -72,12 +72,13 @@ jobs:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-registry-${{ matrix.target }}-
-      - name: Cache Cargo build artifacts
-        uses: actions/cache@v2
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-build-target-${{ matrix.target }}-
+          # I'm not sure if this will bring anything apart from possible weird issues, but this is how its done
+#      - name: Cache Cargo build artifacts
+#        uses: actions/cache@v2
+#        with:
+#          path: target
+#          key: ${{ runner.os }}-cargo-build-target-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+#          restore-keys: ${{ runner.os }}-cargo-build-target-${{ matrix.target }}-
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -93,11 +94,14 @@ jobs:
             assets/
             data/
             !space_business2_riir.d
-      - name: Notify success on Discord after windows build
+      - name: Notify success on Discord
         if: success() && matrix.target == 'x86_64-pc-windows-gnu'
         uses: Ilshidur/action-discord@2.4.4
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_SUCCESS }}
-          content: "Build succeeded! :white_check_mark: Artifact: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact.outputs.id }}"
+          content: |
+            Build succeeded! :white_check_mark:
+            Commit Message: "${{ github.event.head_commit.message }}"
+            Artifact: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact.outputs.id }}
           status: ${{ job.status }}
           color: "65280"
