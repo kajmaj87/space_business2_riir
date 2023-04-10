@@ -1,3 +1,4 @@
+pub mod components;
 mod ui;
 
 use bevy::{

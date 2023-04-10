@@ -4,6 +4,7 @@ extern crate enum_display_derive;
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
 
+use crate::debug::components::Performance;
 use bevy::log::LogPlugin;
 use bevy::prelude::*;
 
@@ -16,6 +17,7 @@ mod stats;
 
 fn main() {
     App::new()
+        .insert_resource(Performance::new(1000))
         .add_plugins(
             DefaultPlugins
                 .set(ImagePlugin::default_nearest())

@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
+use crate::debug::components::Performance;
 use crate::logic::components::{FoodAmount, Person};
+use macros::measured;
 
 #[derive(Resource)]
 pub struct Statistics {
@@ -12,6 +14,8 @@ pub struct Statistics {
     pub current_oranges: u32,
     pub current_people: u32,
 }
+
+#[measured]
 pub fn food_statistics(
     food: Query<&FoodAmount>,
     people: Query<&Person>,

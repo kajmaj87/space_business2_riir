@@ -1,5 +1,7 @@
+use crate::debug::components::Performance;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use macros::measured;
 
 use crate::config::Config;
 use crate::logic::people::GridCoords;
@@ -28,6 +30,7 @@ pub struct FoodLookup {
 pub struct Time(pub u32);
 
 // This system will increase food amount for all food sources
+#[measured]
 pub fn food_growth(
     mut query: Query<(Entity, &FoodSource, &mut FoodAmount, &GridCoords)>,
     config: Res<Config>,
@@ -59,6 +62,7 @@ pub fn food_growth(
 }
 
 // this system increases time by 1 every frame
+#[measured]
 pub fn time_system(mut time: ResMut<Time>) {
     time.0 += 1;
 }

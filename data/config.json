@@ -48,7 +48,7 @@
       ]
     },
     "hunger_increase": {
-      "value": 0.0005,
+      "value": 0.0025,
       "name": "Hunger growth",
       "description": "Hunger increase each frame",
       "range": [

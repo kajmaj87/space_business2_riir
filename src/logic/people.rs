@@ -1,5 +1,7 @@
+use crate::debug::components::Performance;
 use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
+use macros::measured;
 use std::collections::HashMap;
 
 use crate::config::Config;
@@ -96,6 +98,7 @@ pub fn init_people(mut commands: Commands, config: Res<Config>) {
     }
 }
 
+#[measured]
 fn hunger_system(mut query: Query<(&Person, &mut Hunger), Without<Dead>>, config: Res<Config>) {
     for (_, mut hunger) in query.iter_mut() {
         hunger.apple += config.game.hunger_increase.value;
@@ -103,6 +106,7 @@ fn hunger_system(mut query: Query<(&Person, &mut Hunger), Without<Dead>>, config
     }
 }
 
+#[measured]
 fn aging_system(
     mut commands: Commands,
     mut query: Query<(Entity, &Person, &mut Age), Without<Dead>>,
@@ -129,6 +133,7 @@ pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res
         .remove::<ThinkerBuilder>();
 }
 
+#[measured]
 fn move_system(
     mut commands: Commands,
     mut query: Query<(Entity, &Move, &mut GridCoords)>,
@@ -147,6 +152,7 @@ fn add_modulo(a: i32, b: u32, z: u32) -> u32 {
     sum % z
 }
 
+#[measured]
 #[allow(clippy::type_complexity)]
 fn foraging_system(
     mut commands: Commands,
@@ -181,6 +187,7 @@ fn foraging_system(
     }
 }
 
+#[measured]
 fn breeding_system(
     mut commands: Commands,
     mut people: Query<(&mut FoodAmount, &GridCoords), With<Person>>,
@@ -213,6 +220,7 @@ fn breeding_system(
     }
 }
 
+#[measured]
 fn cleanup_system(mut commands: Commands, mut query: Query<(Entity, &mut Ttl)>) {
     for (entity, mut ttl) in query.iter_mut() {
         if ttl.0 > 0 {

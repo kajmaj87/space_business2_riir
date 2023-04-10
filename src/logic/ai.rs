@@ -1,10 +1,11 @@
+use crate::config::Config;
+use crate::debug::components::Performance;
+use crate::logic::people::mark_entity_as_dead;
 use bevy::prelude::*;
 use big_brain::prelude::*;
 use big_brain::BigBrainPlugin;
+use macros::measured;
 use rand::{thread_rng, Rng};
-
-use crate::config::Config;
-use crate::logic::people::mark_entity_as_dead;
 
 use super::components::Dead;
 use super::components::{FoodAmount, Hunger, Person};
@@ -50,7 +51,7 @@ pub fn init_brains(
         );
     }
 }
-
+#[measured]
 fn move_action_system(
     mut commands: Commands,
     mut query: Query<(&Actor, &mut ActionState, &MoveAction)>,
@@ -68,6 +69,7 @@ fn move_action_system(
     }
 }
 
+#[measured]
 fn move_scorer_system(
     food_amount: Query<&FoodAmount>,
     mut query: Query<(&Actor, &mut Score), With<MoveNeed>>,
@@ -85,6 +87,7 @@ fn move_scorer_system(
     }
 }
 
+#[measured]
 fn eat_action_system(
     mut commands: Commands,
     mut hungers: Query<(&mut Hunger, &mut FoodAmount)>,
@@ -129,6 +132,7 @@ fn eat_action_system(
     }
 }
 
+#[measured]
 fn hungry_scorer_system(
     hungers: Query<&Hunger>,
     mut query: Query<(&Actor, &mut Score), With<Hungry>>,

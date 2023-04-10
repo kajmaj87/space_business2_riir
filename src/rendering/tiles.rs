@@ -38,7 +38,7 @@ pub fn randomize_tiles(
         let source;
         let food_amount;
         let threshold = 0.6;
-        let sparsing_speed = 0.5;
+        let sparsing_speed = 0.6;
         let size = config.map.size_x.value as f32;
         if random.gen_range(0.0..1.0)
             < (size * threshold - ((coords.x + coords.y) as f32) * sparsing_speed) / size
