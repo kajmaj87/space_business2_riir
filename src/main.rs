@@ -17,7 +17,7 @@ mod stats;
 
 fn main() {
     App::new()
-        .insert_resource(Performance::new(1000))
+        .insert_resource(Performance::new(100))
         .add_plugins(
             DefaultPlugins
                 .set(ImagePlugin::default_nearest())
