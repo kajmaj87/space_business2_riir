@@ -84,6 +84,7 @@ jobs:
           args: --release --target ${{ matrix.target }}
       - run: mv target/${{ matrix.target}}/release/space_business2_riir* .
       - name: Upload Artifact
+        id: upload-artifact
         uses: actions/upload-artifact@v2
         with:
           name: space-business-${{ matrix.target }}
@@ -92,3 +93,11 @@ jobs:
             assets/
             data/
             !space_business2_riir.d
+      - name: Notify success on Discord after windows build
+        if: success() && matrix.target == 'x86_64-pc-windows-gnu'
+        uses: Ilshidur/action-discord@2.4.4
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_SUCCESS }}
+          content: "Build succeeded! :white_check_mark: Artifact: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact.outputs.id }}"
+          status: ${{ job.status }}
+          color: "65280"
