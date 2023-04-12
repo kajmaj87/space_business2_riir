@@ -16,6 +16,7 @@ use bevy_egui::{
 use egui::plot::{Line, Plot, PlotPoints};
 
 use crate::logic::components::{Age, Dead, Person};
+use crate::logic::GeometryType;
 use crate::{
     config::{Config, ConfigValue, CONFIG_PATH},
     stats::components::Statistics,
@@ -81,6 +82,7 @@ pub fn settings(
             SettingsPanel::Map => add_options_grid(ui, |ui| {
                 draw_config_value(ui, &mut config.map.size_x);
                 draw_config_value(ui, &mut config.map.size_y);
+                draw_geometry_type(ui, &mut config.map.geometry);
                 draw_config_value(ui, &mut config.map.tree_tile_probability);
             }),
             SettingsPanel::Ai => add_options_grid(ui, |ui| {
@@ -114,6 +116,31 @@ fn draw_config_value<T: Numeric>(ui: &mut Ui, value: &mut ConfigValue<T>) {
     } else {
         ui.add(egui::DragValue::new(&mut value.value).speed(0.1));
     }
+    ui.end_row();
+}
+
+fn draw_geometry_type(ui: &mut Ui, value: &mut ConfigValue<GeometryType>) {
+    let label = ui.label(&value.name);
+    if let Some(hint) = &value.description {
+        label.on_hover_text(hint);
+    }
+    egui::ComboBox::from_label("")
+        .selected_text(value.value.to_string())
+        .show_ui(ui, |ui| {
+            ui.set_min_width(120.0);
+            ui.selectable_value(&mut value.value, GeometryType::Torus, "Torus");
+            ui.selectable_value(&mut value.value, GeometryType::FlatEarth, "Flat Earth");
+            ui.selectable_value(
+                &mut value.value,
+                GeometryType::RingVertical,
+                "Ring Vertical",
+            );
+            ui.selectable_value(
+                &mut value.value,
+                GeometryType::RingHorizontal,
+                "Ring Horizontal",
+            );
+        });
     ui.end_row();
 }
 

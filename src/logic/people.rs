@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 use crate::config::Config;
 use crate::logic::components::FoodLookup;
+use crate::logic::measures::find_coordinates;
 use crate::logic::planet::FoodType;
 
 use super::{
@@ -136,20 +137,21 @@ pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res
 #[measured]
 fn move_system(
     mut commands: Commands,
-    mut query: Query<(Entity, &Move, &mut GridCoords)>,
+    mut query: Query<(Entity, &Move, &GridCoords)>,
     config: Res<Config>,
 ) {
-    for (person, move_component, mut coords) in query.iter_mut() {
+    for (person, move_component, coords) in query.iter_mut() {
         commands.entity(person).remove::<Move>();
-        coords.x = add_modulo(move_component.dx, coords.x, config.map.size_x.value);
-        coords.y = add_modulo(move_component.dy, coords.y, config.map.size_y.value);
+        let new_position = find_coordinates(
+            config.map.geometry.value,
+            config.map.size_x.value,
+            config.map.size_y.value,
+            coords,
+            move_component.dx,
+            move_component.dy,
+        );
+        commands.entity(person).insert(new_position);
     }
-}
-
-fn add_modulo(a: i32, b: u32, z: u32) -> u32 {
-    let a = a.rem_euclid(z as i32) as u32;
-    let sum = a.wrapping_add(b);
-    sum % z
 }
 
 #[measured]

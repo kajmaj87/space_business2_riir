@@ -66,7 +66,7 @@
       ]
     },
     "starting_people": {
-      "value": 20000,
+      "value": 20,
       "name": "Starting people"
     },
     "max_person_age": {
@@ -105,12 +105,17 @@
   },
   "map": {
     "size_x": {
-      "value": 200,
+      "value": 50,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 200,
+      "value": 50,
       "name": "Map size y"
+    },
+    "geometry": {
+      "value": "FlatEarth",
+      "name": "Geometry type",
+      "description": "Torus - map is a torus, so the edges are connected. FlatEarth - you know it. RingVertical - vertically connected edges. RingHorizontal - horizontally connected edges"
     },
     "tree_tile_probability": {
       "value": 0.2,

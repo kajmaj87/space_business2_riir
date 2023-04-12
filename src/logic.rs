@@ -1,7 +1,10 @@
 mod ai;
 pub mod components;
+mod measures;
 mod people;
 mod planet;
+
+pub use self::measures::GeometryType;
 
 use bevy::prelude::*;
 

@@ -1,5 +1,6 @@
 use std::fs;
 
+use crate::logic::GeometryType;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -41,6 +42,7 @@ pub struct GameConfig {
 pub struct MapConfig {
     pub size_x: ConfigValue<u32>,
     pub size_y: ConfigValue<u32>,
+    pub geometry: ConfigValue<GeometryType>,
     pub tree_tile_probability: ConfigValue<f32>,
 }
 
