@@ -276,8 +276,8 @@ fn breeding_system(
 ) {
     for (mut person_food_amount, coords) in people.iter_mut() {
         let free_space = free_neighbouring_coords(&config, coords, &lookup);
-        if person_food_amount.apples + person_food_amount.oranges
-            > 2 * config.game.food_for_baby.value
+        if person_food_amount.apples > config.game.food_for_baby.value
+            && person_food_amount.oranges > config.game.food_for_baby.value
             && !free_space.is_empty()
         {
             info!(

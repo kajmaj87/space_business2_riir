@@ -48,7 +48,7 @@
       ]
     },
     "hunger_increase": {
-      "value": 0.002,
+      "value": 0.0015,
       "name": "Hunger growth",
       "description": "Hunger increase each frame",
       "range": [
@@ -66,16 +66,16 @@
       ]
     },
     "starting_people": {
-      "value": 3,
+      "value": 100,
       "name": "Starting people"
     },
     "max_person_age": {
-      "value": 18000,
+      "value": 1000,
       "name": "Max person age",
       "description": "Each person will die after that many turns. 0 means that people do not die of old age."
     },
     "person_ttl": {
-      "value": 60,
+      "value": 300,
       "name": "Person TTL",
       "description": "How many frames to wait until removing dead person entity from game"
     },
@@ -94,7 +94,7 @@
       ]
     },
     "growing_season_length": {
-      "value": 0.25,
+      "value": 0.4,
       "name": "Growing season length",
       "description": "How many frames are in one growing season",
       "range": [
@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 25,
+      "value": 50,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 25,
+      "value": 50,
       "name": "Map size y"
     },
     "geometry": {
