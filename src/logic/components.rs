@@ -1,7 +1,6 @@
 pub use super::people::{Age, Dead, GridCoords, Hunger, Move, Person};
 pub use super::planet::{FoodAmount, FoodSource, FoodType};
 use bevy::prelude::*;
-use bevy_derive::{Deref, DerefMut};
 use std::collections::HashMap;
 
 #[derive(Component)]
@@ -11,7 +10,8 @@ pub struct Name(pub String);
 #[derive(Component)]
 pub struct Ttl(pub u32);
 
-#[derive(Resource, Deref, DerefMut)]
-pub struct FoodLookup {
-    pub food: HashMap<GridCoords, Entity>,
+#[derive(Resource)]
+pub struct Lookup<T> {
+    pub entities: HashMap<GridCoords, Entity>,
+    pub default: Option<T>,
 }

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
-use crate::logic::components::FoodLookup;
+use crate::logic::components::Lookup;
 use crate::{
     config::Config,
     logic::components::{FoodAmount, FoodSource, FoodType, GridCoords},
@@ -31,7 +31,7 @@ pub fn randomize_tiles(
     mut commands: Commands,
     mut query: Query<(Entity, &mut TileTextureIndex, &GridCoords)>,
     config: Res<Config>,
-    mut food_lookup: ResMut<FoodLookup>,
+    mut food_lookup: ResMut<Lookup<FoodSource>>,
 ) {
     let mut random = thread_rng();
     for (entity, mut tile, coords) in query.iter_mut() {
@@ -77,7 +77,7 @@ pub fn randomize_tiles(
         if (2..9).contains(&tile.0) {
             commands.entity(entity).insert(source).insert(food_amount);
             // insert entity to food_lookup using coords as key
-            food_lookup.food.insert(*coords, entity);
+            food_lookup.entities.insert(*coords, entity);
         }
     }
     info!("Tiles were randomized");

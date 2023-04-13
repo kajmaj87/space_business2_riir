@@ -39,7 +39,7 @@
   },
   "game": {
     "growth": {
-      "value": 0.0011,
+      "value": 0.01,
       "name": "Food growth speed",
       "description": "Probability that a tree will get a new apple each frame",
       "range": [
@@ -105,15 +105,15 @@
   },
   "map": {
     "size_x": {
-      "value": 50,
+      "value": 10,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 50,
+      "value": 10,
       "name": "Map size y"
     },
     "geometry": {
-      "value": "FlatEarth",
+      "value": "Torus",
       "name": "Geometry type",
       "description": "Torus - map is a torus, so the edges are connected. FlatEarth - you know it. RingVertical - vertically connected edges. RingHorizontal - horizontally connected edges"
     },

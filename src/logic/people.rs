@@ -2,10 +2,11 @@ use crate::debug::components::Performance;
 use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
 use macros::measured;
+use rand::random;
 use std::collections::HashMap;
 
 use crate::config::Config;
-use crate::logic::components::FoodLookup;
+use crate::logic::components::Lookup;
 use crate::logic::measures::find_coordinates;
 use crate::logic::planet::FoodType;
 
@@ -79,8 +80,13 @@ pub struct PeoplePlugin;
 impl Plugin for PeoplePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(init_people)
-            .insert_resource(FoodLookup {
-                food: HashMap::new(),
+            .insert_resource(Lookup::<FoodSource> {
+                entities: HashMap::new(),
+                default: None,
+            })
+            .insert_resource(Lookup::<Person> {
+                entities: HashMap::new(),
+                default: None,
             })
             .add_system(hunger_system)
             .add_system(move_system)
@@ -92,10 +98,25 @@ impl Plugin for PeoplePlugin {
     }
 }
 
-pub fn init_people(mut commands: Commands, config: Res<Config>) {
+pub fn init_people(
+    mut commands: Commands,
+    config: Res<Config>,
+    mut lookup: ResMut<Lookup<Person>>,
+) {
     info!("People initialized");
+    assert!(config.game.starting_people.value < config.map.size_x.value * config.map.size_y.value);
     for _ in 0..config.game.starting_people.value {
-        commands.spawn(PersonBundle::default());
+        let x = random::<u32>() % config.map.size_x.value;
+        let y = random::<u32>() % config.map.size_y.value;
+        if lookup.entities.get(&GridCoords { x, y }).is_none() {
+            let person = commands
+                .spawn(PersonBundle {
+                    position: GridCoords { x, y },
+                    ..default()
+                })
+                .id();
+            lookup.entities.insert(GridCoords { x, y }, person);
+        }
     }
 }
 
@@ -139,6 +160,7 @@ fn move_system(
     mut commands: Commands,
     mut query: Query<(Entity, &Move, &GridCoords)>,
     config: Res<Config>,
+    mut person_lookup: ResMut<Lookup<Person>>,
 ) {
     for (person, move_component, coords) in query.iter_mut() {
         commands.entity(person).remove::<Move>();
@@ -150,7 +172,11 @@ fn move_system(
             move_component.dx,
             move_component.dy,
         );
-        commands.entity(person).insert(new_position);
+        if person_lookup.entities.get(&new_position).is_none() {
+            commands.entity(person).insert(new_position);
+            person_lookup.entities.insert(new_position, person);
+            person_lookup.entities.remove(coords);
+        }
     }
 }
 
@@ -163,10 +189,10 @@ fn foraging_system(
         (Changed<Forage>, With<Person>, With<Forage>),
     >,
     mut food_producers: Query<(&mut FoodAmount, &GridCoords, &FoodSource), Without<Person>>,
-    food_lookup: Res<FoodLookup>,
+    food_lookup: Res<Lookup<FoodSource>>,
 ) {
     for (person, mut person_food_amount, coords) in people.iter_mut() {
-        if let Some(food) = food_lookup.food.get(coords) {
+        if let Some(food) = food_lookup.entities.get(coords) {
             if let Ok((mut food_amount, _, source)) = food_producers.get_mut(*food) {
                 debug!("Found some food!");
                 match source.0 {
@@ -194,10 +220,13 @@ fn breeding_system(
     mut commands: Commands,
     mut people: Query<(&mut FoodAmount, &GridCoords), With<Person>>,
     config: Res<Config>,
+    mut lookup: ResMut<Lookup<Person>>,
 ) {
     for (mut person_food_amount, coords) in people.iter_mut() {
+        let free_space = free_neighbouring_coords(&config, coords, &lookup);
         if person_food_amount.apples + person_food_amount.oranges
             > 2 * config.game.food_for_baby.value
+            && !free_space.is_empty()
         {
             info!(
                 "I'm having a baby! My food is: {}",
@@ -207,19 +236,47 @@ fn breeding_system(
             let baby_apples = person_food_amount.apples / 2;
             person_food_amount.apples -= baby_apples;
             person_food_amount.oranges -= baby_oranges;
-            commands.spawn(PersonBundle {
-                food: FoodAmount {
-                    apples: baby_apples,
-                    oranges: baby_oranges,
-                },
-                position: GridCoords {
-                    x: coords.x,
-                    y: coords.y,
-                },
-                ..Default::default()
-            });
+            let baby_coords = free_space[random::<usize>() % free_space.len()];
+            let baby = commands
+                .spawn(PersonBundle {
+                    food: FoodAmount {
+                        apples: baby_apples,
+                        oranges: baby_oranges,
+                    },
+                    position: baby_coords,
+                    ..Default::default()
+                })
+                .id();
+            lookup.entities.insert(baby_coords, baby);
         }
     }
+}
+
+fn free_neighbouring_coords(
+    config: &Res<Config>,
+    coords: &GridCoords,
+    lookup: &ResMut<Lookup<Person>>,
+) -> Vec<GridCoords> {
+    let mut result = Vec::new();
+    for dx in -1..=1 {
+        for dy in -1..=1 {
+            if dx == 0 && dy == 0 {
+                continue;
+            }
+            let new_position = find_coordinates(
+                config.map.geometry.value,
+                config.map.size_x.value,
+                config.map.size_y.value,
+                coords,
+                dx,
+                dy,
+            );
+            if lookup.entities.get(&new_position).is_none() {
+                result.push(new_position);
+            }
+        }
+    }
+    result
 }
 
 #[measured]
