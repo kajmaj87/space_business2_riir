@@ -40,7 +40,7 @@ pub struct Move {
 pub struct Forage;
 
 // Position and GridPostion are already defined in bevy::prelude
-#[derive(Component, PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(Component, PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub struct GridCoords {
     pub x: u32,
     pub y: u32,
@@ -88,6 +88,11 @@ impl Plugin for PeoplePlugin {
                 entities: HashMap::new(),
                 default: None,
             })
+            .add_system(
+                one_person_per_space_check
+                    .before(move_system)
+                    .before(breeding_system),
+            )
             .add_system(hunger_system)
             .add_system(move_system)
             .add_system(foraging_system)
@@ -104,8 +109,17 @@ pub fn init_people(
     mut lookup: ResMut<Lookup<Person>>,
 ) {
     info!("People initialized");
-    assert!(config.game.starting_people.value < config.map.size_x.value * config.map.size_y.value);
-    for _ in 0..config.game.starting_people.value {
+    let people_to_spawn =
+        if config.game.starting_people.value > config.map.size_x.value * config.map.size_y.value {
+            warn!(
+                "Too many people for the map size, spawning only {} people",
+                config.map.size_x.value * config.map.size_y.value
+            );
+            config.map.size_x.value * config.map.size_y.value
+        } else {
+            config.game.starting_people.value
+        };
+    while lookup.entities.len() < people_to_spawn as usize {
         let x = random::<u32>() % config.map.size_x.value;
         let y = random::<u32>() % config.map.size_y.value;
         if lookup.entities.get(&GridCoords { x, y }).is_none() {
@@ -116,6 +130,12 @@ pub fn init_people(
                 })
                 .id();
             lookup.entities.insert(GridCoords { x, y }, person);
+            trace!(
+                "Person spawned at {}, {}. Lookup size: {}",
+                x,
+                y,
+                lookup.entities.len()
+            );
         }
     }
 }
@@ -172,10 +192,41 @@ fn move_system(
             move_component.dx,
             move_component.dy,
         );
+        trace!(
+            "Person {} moved from {:?} to {:?}",
+            person.index(),
+            coords,
+            new_position
+        );
         if person_lookup.entities.get(&new_position).is_none() {
             commands.entity(person).insert(new_position);
             person_lookup.entities.insert(new_position, person);
             person_lookup.entities.remove(coords);
+        } else {
+            debug!(
+                "Person {} tried to move to {:?} but there is already someone there",
+                person.index(),
+                new_position
+            );
+        }
+    }
+}
+
+#[measured]
+fn one_person_per_space_check(
+    query: Query<(Entity, &Person, &GridCoords)>,
+    person_lookup: Res<Lookup<Person>>,
+) {
+    for (person, _, coords) in query.iter() {
+        if let Some(other_person) = person_lookup.entities.get(coords) {
+            if *other_person != person {
+                panic!(
+                    "Two people in one place! {} and {} at {:?}",
+                    person.index(),
+                    other_person.index(),
+                    coords
+                );
+            }
         }
     }
 }
@@ -280,11 +331,20 @@ fn free_neighbouring_coords(
 }
 
 #[measured]
-fn cleanup_system(mut commands: Commands, mut query: Query<(Entity, &mut Ttl)>) {
+#[allow(clippy::type_complexity)]
+fn cleanup_system(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut Ttl)>,
+    query_person: Query<(&Person, &GridCoords)>,
+    mut people: ResMut<Lookup<Person>>,
+) {
     for (entity, mut ttl) in query.iter_mut() {
         if ttl.0 > 0 {
             ttl.0 -= 1;
         } else {
+            if query_person.get(entity).is_ok() {
+                people.entities.remove(query_person.get(entity).unwrap().1);
+            }
             commands.entity(entity).despawn_recursive();
         }
     }

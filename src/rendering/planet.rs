@@ -14,18 +14,19 @@ pub fn death_system(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn missing_sprite_setter_system(
     mut commands: Commands,
-    query: Query<Entity, (With<Person>, Without<Handle<Image>>)>,
+    query: Query<(Entity, &GridCoords), (With<Person>, Without<Handle<Image>>)>,
     asset_server: Res<AssetServer>,
 ) {
-    for person in query.iter() {
+    for (person, coords) in query.iter() {
         let sprite = SpriteBundle {
             texture: asset_server.load("person.png"),
             transform: Transform {
                 translation: Vec3 {
-                    x: 0.0,
-                    y: 0.0,
+                    x: coords.x as f32 * TILE_SIZE,
+                    y: coords.y as f32 * TILE_SIZE,
                     z: 2.0,
                 },
                 ..Default::default()

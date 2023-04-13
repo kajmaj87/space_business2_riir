@@ -222,8 +222,8 @@ fn create_plot_line(name: &str, values: &[u32]) -> Line {
 
 fn create_histogram(name: &str, values: &[u32], bins: u32) -> BarChart {
     let mut histogram = HashMap::new();
-    let max = values.iter().max().unwrap();
-    let min = values.iter().min().unwrap();
+    let max = values.iter().max().unwrap_or(&0);
+    let min = values.iter().min().unwrap_or(&0);
     let range = max - min + 1;
     let bin_width = (range as f64 / bins as f64).ceil() as u32;
     for &value in values {
