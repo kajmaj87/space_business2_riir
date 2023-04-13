@@ -39,7 +39,7 @@
   },
   "game": {
     "growth": {
-      "value": 0.0035,
+      "value": 0.005,
       "name": "Food growth speed",
       "description": "Probability that a tree will get a new apple each frame",
       "range": [
@@ -70,7 +70,7 @@
       "name": "Starting people"
     },
     "max_person_age": {
-      "value": 1000,
+      "value": 2500,
       "name": "Max person age",
       "description": "Each person will die after that many turns. 0 means that people do not die of old age."
     },
@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 50,
+      "value": 500,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 50,
+      "value": 500,
       "name": "Map size y"
     },
     "geometry": {
@@ -145,7 +145,7 @@
   },
   "ui": {
     "plot_time_range": {
-      "value": 5000,
+      "value": 15000,
       "name": "Plot time range",
       "description": "How many frames to show on the plot"
     },
