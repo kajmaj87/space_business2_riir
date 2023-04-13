@@ -6,7 +6,7 @@ use crate::{
 };
 
 pub fn death_system(
-    mut query: Query<(&Person, &mut Handle<Image>), Changed<Dead>>,
+    mut query: Query<(&Dead, &mut Handle<Image>), Changed<Dead>>,
     asset_server: Res<AssetServer>,
 ) {
     for (_, mut image) in query.iter_mut() {

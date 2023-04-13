@@ -172,6 +172,7 @@ pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res
         .entity(person)
         .insert(Dead)
         .insert(Ttl(config.game.person_ttl.value))
+        .remove::<Person>()
         .remove::<ThinkerBuilder>();
 }
 
