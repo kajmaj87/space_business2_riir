@@ -39,7 +39,7 @@
   },
   "game": {
     "growth": {
-      "value": 0.01,
+      "value": 0.0035,
       "name": "Food growth speed",
       "description": "Probability that a tree will get a new apple each frame",
       "range": [
@@ -48,7 +48,7 @@
       ]
     },
     "hunger_increase": {
-      "value": 0.0,
+      "value": 0.002,
       "name": "Hunger growth",
       "description": "Hunger increase each frame",
       "range": [
@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 3,
+      "value": 25,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 3,
+      "value": 25,
       "name": "Map size y"
     },
     "geometry": {

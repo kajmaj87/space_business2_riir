@@ -51,6 +51,7 @@ pub fn init_brains(
         );
     }
 }
+
 #[measured]
 fn move_action_system(
     mut commands: Commands,
@@ -59,8 +60,17 @@ fn move_action_system(
     let mut random = thread_rng();
     for (Actor(actor), state, _move) in query.iter_mut() {
         just_execute(state, || {
-            let dx = random.gen_range(-1..=1);
-            let dy = random.gen_range(-1..=1);
+            // randomize dx, dy as -1, 0, 1 (no diagonal movement)
+            let (dx, dy);
+            if random.gen_range(0..=1) == 0 {
+                // horizontal move
+                dx = random.gen_range(-1..=1);
+                dy = 0;
+            } else {
+                // vertical move
+                dx = 0;
+                dy = random.gen_range(-1..=1);
+            }
             commands
                 .entity(*actor)
                 .insert(super::components::Move { dx, dy })
