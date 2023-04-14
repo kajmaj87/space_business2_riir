@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
 use macros::measured;
 use rand::random;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use crate::config::Config;
 use crate::logic::components::Lookup;
@@ -38,6 +38,16 @@ pub struct Move {
 
 #[derive(Component)]
 pub struct Forage;
+
+pub struct Information {
+    pub food: FoodAmount,
+    pub position: GridCoords,
+}
+
+#[derive(Component)]
+pub struct Knowledge {
+    pub infos: VecDeque<Information>,
+}
 
 // Position and GridPostion are already defined in bevy::prelude
 #[derive(Component, PartialEq, Eq, Hash, Copy, Clone, Debug)]
@@ -126,6 +136,7 @@ pub fn init_people(
             let person = commands
                 .spawn(PersonBundle {
                     position: GridCoords { x, y },
+                    age: Age(random::<u32>() % config.game.max_person_age.value),
                     ..default()
                 })
                 .id();
