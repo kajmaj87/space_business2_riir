@@ -6,6 +6,7 @@ use big_brain::prelude::*;
 use big_brain::BigBrainPlugin;
 use macros::measured;
 use rand::{thread_rng, Rng};
+use std::cmp::max;
 
 use super::components::Dead;
 use super::components::{FoodAmount, Hunger, Person};
@@ -87,10 +88,15 @@ fn move_scorer_system(
 ) {
     for (Actor(actor), mut score) in query.iter_mut() {
         if let Ok(food) = food_amount.get(*actor) {
-            let food_goal = config.ai.food_amount_goal.value as f32;
+            let food_goal = config.ai.food_amount_goal.value;
             let food_threshold = config.ai.food_amount_threshold.value;
             let s = clamp(
-                (food_goal - food.apples as f32 - food.oranges as f32) / food_goal + food_threshold,
+                (max(
+                    food_goal as i32 - food.apples as i32,
+                    food_goal as i32 - food.oranges as i32,
+                )) as f32
+                    / food_goal as f32
+                    + food_threshold,
             );
             score.set(s);
         }
