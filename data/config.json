@@ -66,7 +66,7 @@
       ]
     },
     "starting_people": {
-      "value": 100,
+      "value": 180,
       "name": "Starting people"
     },
     "max_person_age": {
@@ -105,15 +105,15 @@
   },
   "map": {
     "size_x": {
-      "value": 500,
+      "value": 50,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 500,
+      "value": 50,
       "name": "Map size y"
     },
     "geometry": {
-      "value": "Torus",
+      "value": "FlatEarth",
       "name": "Geometry type",
       "description": "Torus - map is a torus, so the edges are connected. FlatEarth - you know it. RingVertical - vertically connected edges. RingHorizontal - horizontally connected edges"
     },
@@ -140,6 +140,15 @@
       "range": [
         0.0,
         1.0
+      ]
+    },
+    "vision_range": {
+      "value": 5,
+      "name": "Vision range",
+      "description": "How many tiles the actor can see. They only look directly left, right, up and down",
+      "range": [
+        0,
+        20
       ]
     }
   },

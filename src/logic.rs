@@ -4,7 +4,7 @@ mod measures;
 mod people;
 mod planet;
 
-pub use self::measures::GeometryType;
+pub use self::measures::{GeometryType, RealCoords, VirtualCoords};
 
 use bevy::prelude::*;
 

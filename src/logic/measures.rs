@@ -1,4 +1,5 @@
-use crate::logic::people::GridCoords;
+use crate::config::Config;
+use bevy::prelude::Component;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -8,6 +9,45 @@ pub enum GeometryType {
     FlatEarth,
     RingVertical,
     RingHorizontal,
+}
+
+#[derive(Component, Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub struct VirtualCoords {
+    pub x: i32,
+    pub y: i32,
+}
+
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
+pub struct RealCoords {
+    pub x: u32,
+    pub y: u32,
+}
+
+impl VirtualCoords {
+    pub fn to_real(self, config: &Config) -> RealCoords {
+        match config.map.geometry.value {
+            GeometryType::Torus => {
+                let x = wrap_value(0, self.x, config.map.size_x.value);
+                let y = wrap_value(0, self.y, config.map.size_y.value);
+                RealCoords { x, y }
+            }
+            GeometryType::FlatEarth => {
+                let x = limit_value(0, self.x, 0, config.map.size_x.value);
+                let y = limit_value(0, self.y, 0, config.map.size_y.value);
+                RealCoords { x, y }
+            }
+            GeometryType::RingVertical => {
+                let x = limit_value(0, self.x, 0, config.map.size_x.value);
+                let y = wrap_value(0, self.y, config.map.size_y.value);
+                RealCoords { x, y }
+            }
+            GeometryType::RingHorizontal => {
+                let x = wrap_value(0, self.x, config.map.size_x.value);
+                let y = limit_value(0, self.y, 0, config.map.size_y.value);
+                RealCoords { x, y }
+            }
+        }
+    }
 }
 
 pub fn wrap_value(x: u32, delta: i32, max: u32) -> u32 {
@@ -20,7 +60,6 @@ pub fn wrap_value(x: u32, delta: i32, max: u32) -> u32 {
 }
 
 pub fn limit_value(x: u32, delta: i32, min: u32, max: u32) -> u32 {
-    assert!(delta < (max as i32 - min as i32) && delta > -(max as i32 - min as i32));
     let x = x as i32 + delta;
     if x < min as i32 {
         min
@@ -28,38 +67,6 @@ pub fn limit_value(x: u32, delta: i32, min: u32, max: u32) -> u32 {
         max - 1
     } else {
         x as u32
-    }
-}
-
-pub fn find_coordinates(
-    geometry: GeometryType,
-    max_x: u32,
-    max_y: u32,
-    source: &GridCoords,
-    delta_x: i32,
-    delta_y: i32,
-) -> GridCoords {
-    match geometry {
-        GeometryType::Torus => {
-            let x = wrap_value(source.x, delta_x, max_x);
-            let y = wrap_value(source.y, delta_y, max_y);
-            GridCoords { x, y }
-        }
-        GeometryType::FlatEarth => {
-            let x = limit_value(source.x, delta_x, 0, max_x);
-            let y = limit_value(source.y, delta_y, 0, max_y);
-            GridCoords { x, y }
-        }
-        GeometryType::RingVertical => {
-            let x = limit_value(source.x, delta_x, 0, max_x);
-            let y = wrap_value(source.y, delta_y, max_y);
-            GridCoords { x, y }
-        }
-        GeometryType::RingHorizontal => {
-            let x = wrap_value(source.x, delta_x, max_x);
-            let y = limit_value(source.y, delta_y, 0, max_y);
-            GridCoords { x, y }
-        }
     }
 }
 

@@ -3,11 +3,11 @@ use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
 use macros::measured;
 use rand::random;
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 use crate::config::Config;
 use crate::logic::components::Lookup;
-use crate::logic::measures::find_coordinates;
+use crate::logic::measures::{RealCoords, VirtualCoords};
 use crate::logic::planet::FoodType;
 
 use super::{
@@ -31,29 +31,21 @@ pub struct Age(pub u32);
 pub struct Dead;
 
 #[derive(Component)]
-pub struct Move {
-    pub dx: i32,
-    pub dy: i32,
+pub struct MoveTo {
+    pub dest: VirtualCoords,
 }
 
 #[derive(Component)]
 pub struct Forage;
 
 pub struct Information {
-    pub food: FoodAmount,
-    pub position: GridCoords,
+    pub entity: Entity,
+    pub coords: VirtualCoords,
 }
 
 #[derive(Component)]
 pub struct Knowledge {
-    pub infos: VecDeque<Information>,
-}
-
-// Position and GridPostion are already defined in bevy::prelude
-#[derive(Component, PartialEq, Eq, Hash, Copy, Clone, Debug)]
-pub struct GridCoords {
-    pub x: u32,
-    pub y: u32,
+    pub infos: Vec<Information>,
 }
 
 #[derive(Bundle)]
@@ -63,7 +55,8 @@ struct PersonBundle {
     age: Age,
     hunger: Hunger,
     food: FoodAmount,
-    position: GridCoords,
+    position: VirtualCoords,
+    knowledge: Knowledge,
 }
 
 impl Default for PersonBundle {
@@ -80,7 +73,8 @@ impl Default for PersonBundle {
                 apples: 3,
                 oranges: 3,
             },
-            position: GridCoords { x: 5, y: 3 },
+            position: VirtualCoords { x: 5, y: 3 },
+            knowledge: Knowledge { infos: Vec::new() },
         }
     }
 }
@@ -132,15 +126,18 @@ pub fn init_people(
     while lookup.entities.len() < people_to_spawn as usize {
         let x = random::<u32>() % config.map.size_x.value;
         let y = random::<u32>() % config.map.size_y.value;
-        if lookup.entities.get(&GridCoords { x, y }).is_none() {
+        if lookup.entities.get(&RealCoords { x, y }).is_none() {
             let person = commands
                 .spawn(PersonBundle {
-                    position: GridCoords { x, y },
+                    position: VirtualCoords {
+                        x: x as i32,
+                        y: y as i32,
+                    },
                     age: Age(random::<u32>() % config.game.max_person_age.value),
                     ..default()
                 })
                 .id();
-            lookup.entities.insert(GridCoords { x, y }, person);
+            lookup.entities.insert(RealCoords { x, y }, person);
             trace!(
                 "Person spawned at {}, {}. Lookup size: {}",
                 x,
@@ -190,32 +187,77 @@ pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res
 #[measured]
 fn move_system(
     mut commands: Commands,
-    mut query: Query<(Entity, &Move, &GridCoords)>,
+    mut query: Query<(Entity, &mut MoveTo, &VirtualCoords)>,
     config: Res<Config>,
     mut person_lookup: ResMut<Lookup<Person>>,
 ) {
     for (person, move_component, coords) in query.iter_mut() {
-        commands.entity(person).remove::<Move>();
-        let new_position = find_coordinates(
-            config.map.geometry.value,
-            config.map.size_x.value,
-            config.map.size_y.value,
-            coords,
-            move_component.dx,
-            move_component.dy,
+        warn!("Move system: person {}", person.index());
+
+        // todo: remove only one tile of move per tick and only remove component when its empty
+        // todo: change move to move target (GridCoords)
+        // let (dx, dy) = move_component
+        warn!("Move system: move component {:?}", move_component.dest);
+        warn!("Move system: coords {:?}", coords);
+        let move_vector = VirtualCoords {
+            x: move_component.dest.x - coords.to_real(&config).x as i32,
+            y: move_component.dest.y - coords.to_real(&config).y as i32,
+        };
+        warn!(
+            "Move system: move vector {:?} for person {}",
+            move_vector,
+            person.index()
         );
+        let (delta_x, delta_y) =
+            // horizontal move
+            if move_vector.x > 0 {
+                (1, 0)
+            } else if move_vector.x < 0 {
+                (-1, 0)
+            } else if move_vector.y > 0 {
+                (0, 1)
+            } else if move_vector.y < 0 {
+                (0, -1)
+            } else {
+                (0, 0)
+            };
+        warn!(
+            "Move system: delta {:?} for person {}",
+            (delta_x, delta_y),
+            person.index()
+        );
+
+        if delta_x == 0 && delta_y == 0 {
+            commands.entity(person).remove::<MoveTo>();
+        }
         trace!(
-            "Person {} moved from {:?} to {:?}",
+            "Person {} moved from {:?} by {:?}",
             person.index(),
             coords,
-            new_position
+            (delta_x, delta_y)
         );
-        if person_lookup.entities.get(&new_position).is_none() {
+        let new_position = VirtualCoords {
+            x: coords.x + delta_x,
+            y: coords.y + delta_y,
+        };
+        if person_lookup
+            .entities
+            .get(&new_position.to_real(&config))
+            .is_none()
+        {
             commands.entity(person).insert(new_position);
-            person_lookup.entities.insert(new_position, person);
-            person_lookup.entities.remove(coords);
+            person_lookup
+                .entities
+                .insert(new_position.to_real(&config), person);
+            person_lookup.entities.remove(&coords.to_real(&config));
+            warn!(
+                "person {} moved from {:?} to {:?}",
+                person.index(),
+                coords,
+                new_position
+            );
         } else {
-            debug!(
+            warn!(
                 "Person {} tried to move to {:?} but there is already someone there",
                 person.index(),
                 new_position
@@ -226,11 +268,12 @@ fn move_system(
 
 #[measured]
 fn one_person_per_space_check(
-    query: Query<(Entity, &Person, &GridCoords)>,
+    config: Res<Config>,
+    query: Query<(Entity, &Person, &VirtualCoords)>,
     person_lookup: Res<Lookup<Person>>,
 ) {
     for (person, _, coords) in query.iter() {
-        if let Some(other_person) = person_lookup.entities.get(coords) {
+        if let Some(other_person) = person_lookup.entities.get(&coords.to_real(&config)) {
             if *other_person != person {
                 panic!(
                     "Two people in one place! {} and {} at {:?}",
@@ -248,14 +291,15 @@ fn one_person_per_space_check(
 fn foraging_system(
     mut commands: Commands,
     mut people: Query<
-        (Entity, &mut FoodAmount, &GridCoords),
+        (Entity, &mut FoodAmount, &VirtualCoords),
         (Changed<Forage>, With<Person>, With<Forage>),
     >,
-    mut food_producers: Query<(&mut FoodAmount, &GridCoords, &FoodSource), Without<Person>>,
+    mut food_producers: Query<(&mut FoodAmount, &VirtualCoords, &FoodSource), Without<Person>>,
     food_lookup: Res<Lookup<FoodSource>>,
+    config: Res<Config>,
 ) {
     for (person, mut person_food_amount, coords) in people.iter_mut() {
-        if let Some(food) = food_lookup.entities.get(coords) {
+        if let Some(food) = food_lookup.entities.get(&coords.to_real(&config)) {
             if let Ok((mut food_amount, _, source)) = food_producers.get_mut(*food) {
                 debug!("Found some food!");
                 match source.0 {
@@ -281,7 +325,7 @@ fn foraging_system(
 #[measured]
 fn breeding_system(
     mut commands: Commands,
-    mut people: Query<(&mut FoodAmount, &GridCoords), With<Person>>,
+    mut people: Query<(&mut FoodAmount, &VirtualCoords), With<Person>>,
     config: Res<Config>,
     mut lookup: ResMut<Lookup<Person>>,
 ) {
@@ -310,31 +354,27 @@ fn breeding_system(
                     ..Default::default()
                 })
                 .id();
-            lookup.entities.insert(baby_coords, baby);
+            lookup.entities.insert(baby_coords.to_real(&config), baby);
         }
     }
 }
 
 fn free_neighbouring_coords(
     config: &Res<Config>,
-    coords: &GridCoords,
+    coords: &VirtualCoords,
     lookup: &ResMut<Lookup<Person>>,
-) -> Vec<GridCoords> {
+) -> Vec<VirtualCoords> {
     let mut result = Vec::new();
     for dx in -1..=1 {
         for dy in -1..=1 {
             if dx == 0 && dy == 0 {
                 continue;
             }
-            let new_position = find_coordinates(
-                config.map.geometry.value,
-                config.map.size_x.value,
-                config.map.size_y.value,
-                coords,
-                dx,
-                dy,
-            );
-            if lookup.entities.get(&new_position).is_none() {
+            let new_position = VirtualCoords {
+                x: coords.x + dx,
+                y: coords.y + dy,
+            };
+            if lookup.entities.get(&new_position.to_real(config)).is_none() {
                 result.push(new_position);
             }
         }
@@ -347,15 +387,18 @@ fn free_neighbouring_coords(
 fn cleanup_system(
     mut commands: Commands,
     mut query: Query<(Entity, &mut Ttl)>,
-    query_person: Query<(&Person, &GridCoords)>,
+    query_person: Query<(&Person, &VirtualCoords)>,
     mut people: ResMut<Lookup<Person>>,
+    config: Res<Config>,
 ) {
     for (entity, mut ttl) in query.iter_mut() {
         if ttl.0 > 0 {
             ttl.0 -= 1;
         } else {
             if query_person.get(entity).is_ok() {
-                people.entities.remove(query_person.get(entity).unwrap().1);
+                people
+                    .entities
+                    .remove(&query_person.get(entity).unwrap().1.to_real(&config));
             }
             commands.entity(entity).despawn_recursive();
         }

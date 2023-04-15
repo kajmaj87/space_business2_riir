@@ -4,7 +4,7 @@ use bevy::utils::HashMap;
 use macros::measured;
 
 use crate::config::Config;
-use crate::logic::people::GridCoords;
+use crate::logic::measures::{RealCoords, VirtualCoords};
 
 #[derive(Component)]
 pub enum FoodType {
@@ -23,7 +23,7 @@ pub struct FoodAmount {
 
 #[derive(Resource)]
 pub struct FoodLookup {
-    pub food: HashMap<GridCoords, Entity>,
+    pub food: HashMap<RealCoords, Entity>,
 }
 
 #[derive(Resource)]
@@ -32,7 +32,7 @@ pub struct Time(pub u32);
 // This system will increase food amount for all food sources
 #[measured]
 pub fn food_growth(
-    mut query: Query<(Entity, &FoodSource, &mut FoodAmount, &GridCoords)>,
+    mut query: Query<(Entity, &FoodSource, &mut FoodAmount, &VirtualCoords)>,
     config: Res<Config>,
     time: Res<Time>,
 ) {
@@ -48,7 +48,7 @@ pub fn food_growth(
             && is_in_growing_season(
                 &time,
                 config.map.size_y.value,
-                coords.y,
+                coords.to_real(&config).y,
                 config.game.year_length.value,
                 config.game.growing_season_length.value,
             )

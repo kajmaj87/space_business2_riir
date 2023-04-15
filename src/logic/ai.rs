@@ -1,6 +1,8 @@
 use crate::config::Config;
 use crate::debug::components::Performance;
-use crate::logic::people::mark_entity_as_dead;
+use crate::logic::components::{FoodSource, Lookup};
+use crate::logic::measures::VirtualCoords;
+use crate::logic::people::{mark_entity_as_dead, Information, Knowledge, MoveTo};
 use bevy::prelude::*;
 use big_brain::prelude::*;
 use big_brain::BigBrainPlugin;
@@ -24,6 +26,12 @@ struct MoveNeed;
 #[derive(Clone, Component, Debug, ActionBuilder)]
 struct MoveAction;
 
+#[derive(Clone, Component, Debug, ScorerBuilder)]
+struct MissingInfo;
+
+#[derive(Clone, Component, Debug, ActionBuilder)]
+struct LookAround;
+
 pub struct AiPlugin;
 
 impl Plugin for AiPlugin {
@@ -33,6 +41,9 @@ impl Plugin for AiPlugin {
             .add_system(hungry_scorer_system.in_set(BigBrainSet::Scorers))
             .add_system(move_action_system.in_set(BigBrainSet::Actions))
             .add_system(move_scorer_system.in_set(BigBrainSet::Scorers))
+            .add_system(look_around_action_system.in_set(BigBrainSet::Actions))
+            .add_system(missing_info_scorer_system.in_set(BigBrainSet::Scorers))
+            .add_system(brain_wash)
             .add_system(init_brains);
     }
 }
@@ -48,33 +59,172 @@ pub fn init_brains(
             Thinker::build()
                 .picker(FirstToScore { threshold: 0.8 })
                 .when(Hungry, Eat)
+                // .when(MissingInfo, LookAround)
                 .when(MoveNeed, MoveAction),
         );
     }
 }
 
 #[measured]
+fn brain_wash(mut query: Query<(Entity, &mut Knowledge)>) {
+    for (entity, mut knowledge) in query.iter_mut() {
+        if !knowledge.infos.is_empty() {
+            info!("{} is brain washed", entity.index());
+            // remove half of random elements from knowledge
+            let mut rng = thread_rng();
+            let mut to_remove = knowledge.infos.len() / 2;
+            while to_remove > 0 {
+                let index = rng.gen_range(0..knowledge.infos.len());
+                knowledge.infos.remove(index);
+                to_remove -= 1;
+            }
+        }
+    }
+}
+
+#[measured]
+fn missing_info_scorer_system(
+    mut query: Query<(&Actor, &mut Score), With<MissingInfo>>,
+    info: Query<&Knowledge>,
+) {
+    for (Actor(actor), mut score) in query.iter_mut() {
+        if let Ok(knowledge) = info.get(*actor) {
+            if knowledge.infos.is_empty() {
+                score.set(1.0);
+                warn!("{} has no info", actor.index());
+            } else {
+                score.set(0.0);
+            }
+        } else {
+            score.set(1.0);
+        }
+    }
+}
+
+#[measured]
+fn look_around_action_system(
+    config: Res<Config>,
+    food_lookup: Res<Lookup<FoodSource>>,
+    mut query: Query<(&Actor, &mut ActionState), With<LookAround>>,
+    people: Query<&VirtualCoords>,
+    mut commands: Commands,
+) {
+    for (Actor(actor), state) in query.iter_mut() {
+        just_execute(state, || {
+            if let Ok(coords) = people.get(*actor) {
+                let food = find_food(&food_lookup, &config, coords, config.ai.vision_range.value);
+                warn!("{} found {} food sources", actor.index(), food.len());
+                commands.entity(*actor).insert(Knowledge { infos: food });
+            }
+        })
+    }
+}
+
+fn find_food(
+    food_lookup: &Res<Lookup<FoodSource>>,
+    config: &Config,
+    origin: &VirtualCoords,
+    vision_range: u32,
+) -> Vec<Information> {
+    let mut result = Vec::new();
+    // gather GridCoords in a vector using coords, looking up, down, left, right upto vision_range tiles
+    let mut coords_to_check = Vec::new();
+    for x in origin.x - vision_range as i32..=origin.x + vision_range as i32 {
+        coords_to_check.push(VirtualCoords { x, y: origin.y });
+    }
+    for y in origin.y - vision_range as i32..=origin.y + vision_range as i32 {
+        coords_to_check.push(VirtualCoords { x: origin.x, y });
+    }
+    for coords in coords_to_check {
+        if let Some(food) = food_lookup.entities.get(&coords.to_real(config)) {
+            result.push(Information {
+                entity: *food,
+                coords,
+            });
+        }
+    }
+    result
+}
+
+#[measured]
 fn move_action_system(
     mut commands: Commands,
+    // knowledge: Query<&Knowledge>,
+    food_lookup: Res<Lookup<FoodSource>>,
+    food: Query<&FoodAmount, With<FoodSource>>,
+    person: Query<(&FoodAmount, &VirtualCoords), With<Person>>,
+    config: Res<Config>,
     mut query: Query<(&Actor, &mut ActionState, &MoveAction)>,
 ) {
     let mut random = thread_rng();
-    for (Actor(actor), state, _move) in query.iter_mut() {
+    warn!("Move action system");
+    for (Actor(actor), state, _) in query.iter_mut() {
+        // warn!("{} is moving, state is {:?}", actor.index(), state);
         just_execute(state, || {
-            // randomize dx, dy as -1, 0, 1 (no diagonal movement)
-            let (dx, dy);
-            if random.gen_range(0..=1) == 0 {
-                // horizontal move
-                dx = random.gen_range(-1..=1);
-                dy = 0;
+            let destination = if let Ok((person_food, coords)) = person.get(*actor) {
+                let mut best = None;
+                let mut best_score = 0.0;
+                for info in find_food(&food_lookup, &config, coords, config.ai.vision_range.value) {
+                    if let Ok(food_amount) = food.get(info.entity) {
+                        let move_vector = VirtualCoords {
+                            x: info.coords.x - coords.x,
+                            y: info.coords.y - coords.y,
+                        };
+                        let cost = (move_vector.x.abs() + move_vector.y.abs()) as f32
+                            * config.game.hunger_increase.value;
+                        let score = (if person_food.apples > person_food.oranges {
+                            food_amount.apples as f32
+                        } else {
+                            food_amount.oranges as f32
+                        }) - cost;
+                        if score > best_score {
+                            best_score = score;
+                            best = Some(info.coords);
+                        }
+                    }
+                    warn!("person {} had no knowledge", actor.index());
+                }
+                warn!("{:?} has best score of {}", best, best_score);
+                best
             } else {
-                // vertical move
-                dx = 0;
-                dy = random.gen_range(-1..=1);
-            }
+                warn!("{} is not a person", actor.index());
+                None
+            };
+
+            let destination = if let Some(destination) = destination {
+                warn!(
+                    "{} is moving to best position found {:?}",
+                    actor.index(),
+                    destination
+                );
+                destination
+            } else {
+                // randomize dx, dy as -1, 0, 1 (no diagonal movement)
+                let (dx, dy);
+                if random.gen_range(0..=1) == 0 {
+                    // horizontal move
+                    dx = random.gen_range(-1..=1);
+                    dy = 0;
+                } else {
+                    // vertical move
+                    dx = 0;
+                    dy = random.gen_range(-1..=1);
+                }
+                warn!("{} is moving randomly by ({}, {})", actor.index(), dx, dy);
+                if let Ok((_, coords)) = person.get(*actor) {
+                    warn!("{} is a person", actor.index());
+                    VirtualCoords {
+                        x: coords.x + dx,
+                        y: coords.y + dy,
+                    }
+                } else {
+                    panic!("{} is not a person", actor.index());
+                }
+            };
             commands
                 .entity(*actor)
-                .insert(super::components::Move { dx, dy })
+                .insert(MoveTo { dest: destination })
+                // todo this should be first added after the move is ended
                 .insert(Forage);
         })
     }
@@ -84,10 +234,14 @@ fn move_action_system(
 fn move_scorer_system(
     food_amount: Query<&FoodAmount>,
     mut query: Query<(&Actor, &mut Score), With<MoveNeed>>,
+    already_moving: Query<(&Actor, &MoveTo)>,
     config: Res<Config>,
 ) {
     for (Actor(actor), mut score) in query.iter_mut() {
-        if let Ok(food) = food_amount.get(*actor) {
+        if already_moving.get(*actor).is_ok() {
+            warn!("{} is already moving", actor.index());
+            score.set(0.0);
+        } else if let Ok(food) = food_amount.get(*actor) {
             let food_goal = config.ai.food_amount_goal.value;
             let food_threshold = config.ai.food_amount_threshold.value;
             let s = clamp(
@@ -98,6 +252,7 @@ fn move_scorer_system(
                     / food_goal as f32
                     + food_threshold,
             );
+            warn!("{} has score of {} for moving", actor.index(), s);
             score.set(s);
         }
     }
@@ -169,10 +324,10 @@ fn hungry_scorer_system(
 fn just_execute(mut state: Mut<ActionState>, f: impl FnOnce()) {
     match *state {
         ActionState::Requested => {
-            *state = ActionState::Executing;
+            f();
+            *state = ActionState::Success;
         }
         ActionState::Executing => {
-            f();
             *state = ActionState::Success;
         }
         ActionState::Cancelled => {

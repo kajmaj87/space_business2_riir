@@ -3,9 +3,10 @@ use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::logic::components::Lookup;
+use crate::logic::VirtualCoords;
 use crate::{
     config::Config,
-    logic::components::{FoodAmount, FoodSource, FoodType, GridCoords},
+    logic::components::{FoodAmount, FoodSource, FoodType},
 };
 
 const EMPTY_FOOD_TILE_INDEX: u32 = 2;
@@ -29,7 +30,7 @@ pub fn update_food_tiles(
 
 pub fn randomize_tiles(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut TileTextureIndex, &GridCoords)>,
+    mut query: Query<(Entity, &mut TileTextureIndex, &VirtualCoords)>,
     config: Res<Config>,
     mut food_lookup: ResMut<Lookup<FoodSource>>,
 ) {
@@ -51,7 +52,8 @@ pub fn randomize_tiles(
             };
         } else if random.gen_range(0.0..1.0)
             < (size * threshold
-                - (((config.map.size_x.value - coords.x) + (config.map.size_y.value - coords.y))
+                - (((config.map.size_x.value - coords.to_real(&config).x)
+                    + (config.map.size_y.value - coords.to_real(&config).y))
                     as f32)
                     * sparsing_speed)
                 / size
@@ -77,7 +79,7 @@ pub fn randomize_tiles(
         if (2..9).contains(&tile.0) {
             commands.entity(entity).insert(source).insert(food_amount);
             // insert entity to food_lookup using coords as key
-            food_lookup.entities.insert(*coords, entity);
+            food_lookup.entities.insert(coords.to_real(&config), entity);
         }
     }
     info!("Tiles were randomized");
@@ -110,7 +112,10 @@ pub fn setup_tiles(mut commands: Commands, asset_server: Res<AssetServer>, confi
     for x in 0..tilemap_size.x {
         for y in 0..tilemap_size.y {
             let tile_pos = TilePos { x, y };
-            let coords = GridCoords { x, y };
+            let coords = VirtualCoords {
+                x: x as i32,
+                y: y as i32,
+            };
             let tile_entity = commands
                 .spawn(TileBundle {
                     position: tile_pos,

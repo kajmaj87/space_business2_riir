@@ -1,5 +1,6 @@
-pub use super::people::{Age, Dead, GridCoords, Hunger, Move, Person};
+pub use super::people::{Age, Dead, Hunger, MoveTo, Person};
 pub use super::planet::{FoodAmount, FoodSource, FoodType};
+use crate::logic::measures::RealCoords;
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -12,6 +13,6 @@ pub struct Ttl(pub u32);
 
 #[derive(Resource)]
 pub struct Lookup<T> {
-    pub entities: HashMap<GridCoords, Entity>,
+    pub entities: HashMap<RealCoords, Entity>,
     pub default: Option<T>,
 }

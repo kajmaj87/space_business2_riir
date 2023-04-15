@@ -50,6 +50,7 @@ pub struct MapConfig {
 pub struct AiConfig {
     pub food_amount_goal: ConfigValue<u32>,
     pub food_amount_threshold: ConfigValue<f32>,
+    pub vision_range: ConfigValue<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Component)]
