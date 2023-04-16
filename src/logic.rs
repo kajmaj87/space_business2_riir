@@ -1,5 +1,6 @@
 mod ai;
 pub mod components;
+pub(crate) mod invariants;
 mod measures;
 mod people;
 mod planet;

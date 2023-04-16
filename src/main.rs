@@ -32,5 +32,6 @@ fn main() {
         .add_plugin(logic::LogicPlugin)
         .add_plugin(stats::StatsPlugin)
         .add_plugin(rendering::RenderingPlugin)
+        .add_plugin(logic::invariants::InvariantsPlugin)
         .run();
 }

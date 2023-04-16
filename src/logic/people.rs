@@ -92,11 +92,6 @@ impl Plugin for PeoplePlugin {
                 entities: HashMap::new(),
                 default: None,
             })
-            .add_system(
-                one_person_per_space_check
-                    .before(move_system)
-                    .before(breeding_system),
-            )
             .add_system(hunger_system)
             .add_system(move_system)
             .add_system(foraging_system)
@@ -157,7 +152,7 @@ fn hunger_system(mut query: Query<(&Person, &mut Hunger), Without<Dead>>, config
 }
 
 #[measured]
-fn aging_system(
+pub fn aging_system(
     mut commands: Commands,
     mut query: Query<(Entity, &Person, &mut Age), Without<Dead>>,
     config: Res<Config>,
@@ -166,7 +161,7 @@ fn aging_system(
         age.0 += 1;
         if age.0 > config.game.max_person_age.value && config.game.max_person_age.value > 0 {
             mark_entity_as_dead(person, &mut commands, &config);
-            info!(
+            warn!(
                 "Person {} died of old age being {} turns old",
                 person.index(),
                 age.0
@@ -185,7 +180,7 @@ pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res
 }
 
 #[measured]
-fn move_system(
+pub fn move_system(
     mut commands: Commands,
     mut query: Query<(Entity, &mut MoveTo, &VirtualCoords)>,
     config: Res<Config>,
@@ -267,26 +262,6 @@ fn move_system(
 }
 
 #[measured]
-fn one_person_per_space_check(
-    config: Res<Config>,
-    query: Query<(Entity, &Person, &VirtualCoords)>,
-    person_lookup: Res<Lookup<Person>>,
-) {
-    for (person, _, coords) in query.iter() {
-        if let Some(other_person) = person_lookup.entities.get(&coords.to_real(&config)) {
-            if *other_person != person {
-                panic!(
-                    "Two people in one place! {} and {} at {:?}",
-                    person.index(),
-                    other_person.index(),
-                    coords
-                );
-            }
-        }
-    }
-}
-
-#[measured]
 #[allow(clippy::type_complexity)]
 fn foraging_system(
     mut commands: Commands,
@@ -323,7 +298,7 @@ fn foraging_system(
 }
 
 #[measured]
-fn breeding_system(
+pub fn breeding_system(
     mut commands: Commands,
     mut people: Query<(&mut FoodAmount, &VirtualCoords), With<Person>>,
     config: Res<Config>,
@@ -387,7 +362,7 @@ fn free_neighbouring_coords(
 fn cleanup_system(
     mut commands: Commands,
     mut query: Query<(Entity, &mut Ttl)>,
-    query_person: Query<(&Person, &VirtualCoords)>,
+    query_person: Query<(&Dead, &VirtualCoords)>,
     mut people: ResMut<Lookup<Person>>,
     config: Res<Config>,
 ) {
@@ -395,10 +370,9 @@ fn cleanup_system(
         if ttl.0 > 0 {
             ttl.0 -= 1;
         } else {
-            if query_person.get(entity).is_ok() {
-                people
-                    .entities
-                    .remove(&query_person.get(entity).unwrap().1.to_real(&config));
+            if let Ok((_, coords)) = query_person.get(entity) {
+                warn!("Person {} died, removing from coords", entity.index());
+                people.entities.remove(&coords.to_real(&config));
             }
             commands.entity(entity).despawn_recursive();
         }

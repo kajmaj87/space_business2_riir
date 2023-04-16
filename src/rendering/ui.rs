@@ -88,6 +88,7 @@ pub fn settings(
             SettingsPanel::Ai => add_options_grid(ui, |ui| {
                 draw_config_value(ui, &mut config.ai.food_amount_goal);
                 draw_config_value(ui, &mut config.ai.food_amount_threshold);
+                draw_config_value(ui, &mut config.ai.vision_range);
             }),
         }
     });

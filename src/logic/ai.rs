@@ -18,7 +18,7 @@ use super::people::Forage;
 struct Hungry;
 
 #[derive(Clone, Component, Debug, ActionBuilder)]
-struct Eat;
+pub struct Eat;
 
 #[derive(Clone, Component, Debug, ScorerBuilder)]
 struct MoveNeed;
@@ -259,7 +259,7 @@ fn move_scorer_system(
 }
 
 #[measured]
-fn eat_action_system(
+pub fn eat_action_system(
     mut commands: Commands,
     mut hungers: Query<(&mut Hunger, &mut FoodAmount)>,
     mut query: Query<(&Actor, &mut ActionState, &Eat)>,
@@ -267,6 +267,7 @@ fn eat_action_system(
 ) {
     for (Actor(actor), state, _eat) in query.iter_mut() {
         if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
+            warn!("{} is eating", actor.index());
             just_execute(state, || {
                 if hunger.apple > 1.0 && food.apples > 0 {
                     let old_hunger = hunger.apple;
@@ -291,9 +292,9 @@ fn eat_action_system(
                 } else {
                     mark_entity_as_dead(*actor, &mut commands, &config);
                     if hunger.orange > 1.0 {
-                        info!("Person {} has died of orange hunger", actor.index());
+                        warn!("Person {} has died of orange hunger", actor.index());
                     } else if hunger.apple > 1.0 {
-                        info!("Person {} has died of apple hunger", actor.index());
+                        warn!("Person {} has died of apple hunger", actor.index());
                     } else {
                         warn!("Person {} has died of unknown reason", actor.index());
                     }
