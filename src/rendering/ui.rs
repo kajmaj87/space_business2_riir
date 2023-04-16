@@ -165,7 +165,7 @@ pub fn food_statistics(
         config.ui.plot_time_range.value,
     );
     let orange_range = get_range(
-        &stats.orange_history_people,
+        &stats.orange_history_sources,
         config.ui.plot_time_range.value,
     );
     let apple_range_people =
@@ -177,7 +177,7 @@ pub fn food_statistics(
     let people_range = get_range(&stats.people_history, config.ui.plot_time_range.value);
 
     let apples = &stats.apple_history_sources.as_slice()[apple_range..];
-    let oranges = &stats.orange_history_people.as_slice()[orange_range..];
+    let oranges = &stats.orange_history_sources.as_slice()[orange_range..];
     let apples_people = &stats.apple_history_people.as_slice()[apple_range_people..];
     let oranges_people = &stats.orange_history_people.as_slice()[orange_range_people..];
     let people = &stats.people_history.as_slice()[people_range..];
