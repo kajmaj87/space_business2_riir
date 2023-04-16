@@ -8,7 +8,8 @@ use crate::config::Config;
 use crate::logic::components::Lookup;
 use crate::logic::measures::VirtualCoords;
 use crate::logic::people::{
-    free_neighbouring_coords, occupied_neighbouring_coords, Female, Male, Person, PersonBundle,
+    free_neighbouring_coords, occupied_neighbouring_coords, Female, Fertile, Male, Person,
+    PersonBundle,
 };
 
 use super::planet::FoodAmount;
@@ -44,8 +45,8 @@ pub fn add_interaction_system(
 #[measured]
 pub fn breeding_interaction_system(
     mut commands: Commands,
-    mut mothers: Query<(&mut FoodAmount, &VirtualCoords), With<Female>>,
-    mut fathers: Query<(&mut FoodAmount, &VirtualCoords), Without<Female>>,
+    mut mothers: Query<(&mut FoodAmount, &VirtualCoords, &Fertile), With<Female>>,
+    mut fathers: Query<(&mut FoodAmount, &VirtualCoords, &Fertile), Without<Female>>,
     config: Res<Config>,
     mut lookup: ResMut<Lookup<Person>>,
     interactions: Query<&PeopleInteraction>,
@@ -68,10 +69,11 @@ fn create_baby(
     commands: &mut Commands,
     config: &Res<Config>,
     lookup: &mut ResMut<Lookup<Person>>,
-    father: Result<(Mut<FoodAmount>, &VirtualCoords), QueryEntityError>,
-    mother: Result<(Mut<FoodAmount>, &VirtualCoords), QueryEntityError>,
+    father: Result<(Mut<FoodAmount>, &VirtualCoords, &Fertile), QueryEntityError>,
+    mother: Result<(Mut<FoodAmount>, &VirtualCoords, &Fertile), QueryEntityError>,
 ) {
-    if let (Ok((mut father_food, _)), Ok((mut mother_food, mother_coords))) = (father, mother) {
+    if let (Ok((mut father_food, _, _)), Ok((mut mother_food, mother_coords, _))) = (father, mother)
+    {
         let free_space = free_neighbouring_coords(config, mother_coords, lookup);
         if !free_space.is_empty()
             && father_food.apples + mother_food.apples > config.game.food_for_baby.value

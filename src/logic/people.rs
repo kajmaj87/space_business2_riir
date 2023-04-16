@@ -27,8 +27,12 @@ pub struct Person;
 
 #[derive(Component)]
 pub struct Male;
+
 #[derive(Component)]
 pub struct Female;
+
+#[derive(Component)]
+pub struct Fertile;
 
 #[derive(Component)]
 pub struct Age(pub u32);
@@ -102,6 +106,7 @@ impl Plugin for PeoplePlugin {
             .add_system(move_system)
             .add_system(foraging_system)
             .add_system(aging_system)
+            .add_system(fertility_system)
             // we need to despawn enities separately so that no commands use them in wrong moment
             .add_system(cleanup_system.in_base_set(CoreSet::PostUpdate));
     }
@@ -176,6 +181,46 @@ pub fn aging_system(
             );
         }
     }
+}
+
+#[measured]
+fn fertility_system(
+    mut commands: Commands,
+    males: Query<&Male>,
+    females: Query<&Female>,
+    query: Query<(Entity, &Person, &Age)>,
+    config: Res<Config>,
+) {
+    for (person, _, age) in query.iter() {
+        if let Ok(_male) = males.get(person) {
+            if is_in_male_fertile_age(age.0, &config) {
+                commands.entity(person).insert(Fertile);
+            } else {
+                commands.entity(person).remove::<Fertile>();
+            }
+        }
+        if let Ok(_female) = females.get(person) {
+            if is_in_female_fertile_age(age.0, &config) {
+                commands.entity(person).insert(Fertile);
+            } else {
+                commands.entity(person).remove::<Fertile>();
+            }
+        }
+    }
+}
+
+fn is_in_male_fertile_age(age: u32, config: &Config) -> bool {
+    (config.game.min_fertile_age_male.value * config.game.max_person_age.value as f32)
+        < (age as f32)
+        && (age as f32)
+            < (config.game.max_fertile_age_male.value * config.game.max_person_age.value as f32)
+}
+
+fn is_in_female_fertile_age(age: u32, config: &Config) -> bool {
+    (config.game.min_fertile_age_female.value * config.game.max_person_age.value as f32)
+        < (age as f32)
+        && (age as f32)
+            < (config.game.max_fertile_age_female.value * config.game.max_person_age.value as f32)
 }
 
 pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res<Config>) {
