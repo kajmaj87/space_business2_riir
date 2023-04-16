@@ -3,25 +3,16 @@ use bevy::prelude::*;
 use macros::measured;
 
 use crate::config::Config;
-use crate::logic::ai::eat_action_system;
 use crate::logic::components::{Dead, Lookup};
 use crate::logic::measures::VirtualCoords;
-use crate::logic::people::{aging_system, breeding_system, move_system, Person};
+use crate::logic::people::Person;
 
 pub struct InvariantsPlugin;
 
 impl Plugin for InvariantsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(
-            one_person_per_space_check
-                .before(move_system)
-                .before(breeding_system),
-        )
-        .add_system(
-            person_lookup_has_correct_amount_of_people
-                .after(aging_system)
-                .after(eat_action_system),
-        );
+        app.add_system(one_person_per_space_check.in_base_set(CoreSet::PreUpdate))
+            .add_system(person_lookup_has_correct_amount_of_people.in_base_set(CoreSet::PreUpdate));
     }
 }
 

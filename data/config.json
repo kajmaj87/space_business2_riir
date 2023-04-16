@@ -66,7 +66,7 @@
       ]
     },
     "starting_people": {
-      "value": 180,
+      "value": 10,
       "name": "Starting people"
     },
     "max_person_age": {
