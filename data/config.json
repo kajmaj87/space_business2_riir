@@ -94,7 +94,7 @@
       ]
     },
     "growing_season_length": {
-      "value": 0.4,
+      "value": 0.15,
       "name": "Growing season length",
       "description": "How many frames are in one growing season",
       "range": [
@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 20,
+      "value": 40,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 20,
+      "value": 40,
       "name": "Map size y"
     },
     "geometry": {
@@ -118,7 +118,7 @@
       "description": "Torus - map is a torus, so the edges are connected. FlatEarth - you know it. RingVertical - vertically connected edges. RingHorizontal - horizontally connected edges"
     },
     "tree_tile_probability": {
-      "value": 0.4,
+      "value": 0.51,
       "name": "Tree tile %",
       "description": "How many tiles will be generates as trees (randomly)",
       "range": [
