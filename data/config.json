@@ -66,7 +66,7 @@
       ]
     },
     "starting_people": {
-      "value": 30,
+      "value": 120,
       "name": "Starting people"
     },
     "max_person_age": {
@@ -108,7 +108,7 @@
       "description": "If checked a random person will inherit all food after someone dies. Otherwise the food goes to waste."
     },
     "min_fertile_age_male": {
-      "value": 0.20,
+      "value": 0.2,
       "name": "Min fertile male age",
       "description": "How much % of max age a male person must live to start being fertile",
       "range": [
@@ -146,11 +146,11 @@
   },
   "map": {
     "size_x": {
-      "value": 40,
+      "value": 80,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 40,
+      "value": 80,
       "name": "Map size y"
     },
     "geometry": {
