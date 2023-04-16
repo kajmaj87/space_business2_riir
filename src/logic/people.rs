@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use big_brain::thinker::ThinkerBuilder;
 use macros::measured;
 use rand::random;
+use rand::seq::IteratorRandom;
 use std::collections::HashMap;
 
 use crate::config::Config;
@@ -362,7 +363,8 @@ fn free_neighbouring_coords(
 fn cleanup_system(
     mut commands: Commands,
     mut query: Query<(Entity, &mut Ttl)>,
-    query_person: Query<(&Dead, &VirtualCoords)>,
+    query_person: Query<(&Dead, &VirtualCoords, &FoodAmount)>,
+    mut lottery_person: Query<(&Person, &mut FoodAmount), Without<Dead>>,
     mut people: ResMut<Lookup<Person>>,
     config: Res<Config>,
 ) {
@@ -370,9 +372,16 @@ fn cleanup_system(
         if ttl.0 > 0 {
             ttl.0 -= 1;
         } else {
-            if let Ok((_, coords)) = query_person.get(entity) {
+            if let Ok((_, coords, food_to_inherit)) = query_person.get(entity) {
                 warn!("Person {} died, removing from coords", entity.index());
+                let mut rng = rand::thread_rng();
                 people.entities.remove(&coords.to_real(&config));
+                if config.game.death_lottery.value {
+                    if let Some((_, mut winner_food)) = lottery_person.iter_mut().choose(&mut rng) {
+                        winner_food.apples += food_to_inherit.apples;
+                        winner_food.oranges += food_to_inherit.oranges;
+                    }
+                }
             }
             commands.entity(entity).despawn_recursive();
         }

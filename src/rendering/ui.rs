@@ -78,6 +78,7 @@ pub fn settings(
                 draw_config_value(ui, &mut config.game.person_ttl);
                 draw_config_value(ui, &mut config.game.year_length);
                 draw_config_value(ui, &mut config.game.growing_season_length);
+                draw_bool_config_value(ui, &mut config.game.death_lottery);
             }),
             SettingsPanel::Map => add_options_grid(ui, |ui| {
                 draw_config_value(ui, &mut config.map.size_x);
@@ -92,6 +93,14 @@ pub fn settings(
             }),
         }
     });
+}
+
+fn draw_bool_config_value(ui: &mut Ui, value: &mut ConfigValue<bool>) {
+    let label = ui.label(&value.name);
+    if let Some(hint) = &value.description {
+        label.on_hover_text(hint);
+    }
+    ui.checkbox(&mut value.value, "");
 }
 
 fn add_settings_panel(ui: &mut Ui, value: &mut SettingsPanel, label: SettingsPanel) {

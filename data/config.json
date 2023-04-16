@@ -101,6 +101,11 @@
         0.0,
         1.0
       ]
+    },
+    "death_lottery": {
+      "value": true,
+      "name": "Death lottery",
+      "description": "If checked a random person will inherit all food after someone dies. Otherwise the food goes to waste."
     }
   },
   "map": {
