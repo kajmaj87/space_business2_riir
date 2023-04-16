@@ -380,6 +380,8 @@ fn cleanup_system(
                     if let Some((_, mut winner_food)) = lottery_person.iter_mut().choose(&mut rng) {
                         winner_food.apples += food_to_inherit.apples;
                         winner_food.oranges += food_to_inherit.oranges;
+                    } else {
+                        panic!("No one to inherit food from dead person");
                     }
                 }
             }

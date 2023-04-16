@@ -160,15 +160,32 @@ pub fn food_statistics(
     mut config: ResMut<Config>,
     query: Query<(&Person, &Age), Without<Dead>>,
 ) {
-    let apple_range = get_range(&stats.apple_history, config.ui.plot_time_range.value);
-    let orange_range = get_range(&stats.orange_history, config.ui.plot_time_range.value);
+    let apple_range = get_range(
+        &stats.apple_history_sources,
+        config.ui.plot_time_range.value,
+    );
+    let orange_range = get_range(
+        &stats.orange_history_people,
+        config.ui.plot_time_range.value,
+    );
+    let apple_range_people =
+        get_range(&stats.apple_history_people, config.ui.plot_time_range.value);
+    let orange_range_people = get_range(
+        &stats.orange_history_people,
+        config.ui.plot_time_range.value,
+    );
     let people_range = get_range(&stats.people_history, config.ui.plot_time_range.value);
 
-    let apples = &stats.apple_history.as_slice()[apple_range..];
-    let oranges = &stats.orange_history.as_slice()[orange_range..];
+    let apples = &stats.apple_history_sources.as_slice()[apple_range..];
+    let oranges = &stats.orange_history_people.as_slice()[orange_range..];
+    let apples_people = &stats.apple_history_people.as_slice()[apple_range_people..];
+    let oranges_people = &stats.orange_history_people.as_slice()[orange_range_people..];
     let people = &stats.people_history.as_slice()[people_range..];
     let apple_line = create_plot_line("Apples", apples).color(Color32::RED);
     let orange_line = create_plot_line("Oranges", oranges).color(Color32::from_rgb(255, 165, 0));
+    let apple_line_people = create_plot_line("Apples (people)", apples_people).color(Color32::RED);
+    let orange_line_people =
+        create_plot_line("Oranges (people)", oranges_people).color(Color32::from_rgb(255, 165, 0));
     let people_line = create_plot_line("People", people);
     let ages = query.iter().map(|(_, age)| age.0).collect::<Vec<_>>();
     egui::Window::new("Plots").show(egui_context.ctx_mut(), |ui| {
@@ -186,6 +203,16 @@ pub fn food_statistics(
             .show(ui, |plot_ui| {
                 plot_ui.line(apple_line);
                 plot_ui.line(orange_line);
+            });
+        Plot::new("foods_people")
+            .view_aspect(2.0)
+            .legend(Legend {
+                position: Corner::LeftTop,
+                ..default()
+            })
+            .show(ui, |plot_ui| {
+                plot_ui.line(apple_line_people);
+                plot_ui.line(orange_line_people);
             });
         Plot::new("people")
             .view_aspect(2.0)
