@@ -38,7 +38,7 @@ pub fn randomize_tiles(
     for (entity, mut tile, coords) in query.iter_mut() {
         let source;
         let food_amount;
-        let threshold = 0.6;
+        let threshold = config.map.tree_tile_probability.value;
         let sparsing_speed = 0.4;
         let size = config.map.size_x.value as f32;
         if random.gen_range(0.0..1.0)

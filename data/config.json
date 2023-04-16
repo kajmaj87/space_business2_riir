@@ -48,7 +48,7 @@
       ]
     },
     "hunger_increase": {
-      "value": 0.0015,
+      "value": 0.005,
       "name": "Hunger growth",
       "description": "Hunger increase each frame",
       "range": [
@@ -105,11 +105,11 @@
   },
   "map": {
     "size_x": {
-      "value": 50,
+      "value": 20,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 50,
+      "value": 20,
       "name": "Map size y"
     },
     "geometry": {
@@ -118,7 +118,7 @@
       "description": "Torus - map is a torus, so the edges are connected. FlatEarth - you know it. RingVertical - vertically connected edges. RingHorizontal - horizontally connected edges"
     },
     "tree_tile_probability": {
-      "value": 0.2,
+      "value": 0.4,
       "name": "Tree tile %",
       "description": "How many tiles will be generates as trees (randomly)",
       "range": [
@@ -129,7 +129,7 @@
   },
   "ai": {
     "food_amount_goal": {
-      "value": 40,
+      "value": 10,
       "name": "Food amount goal",
       "description": "Food amount at which the actor does not care about food at all"
     },
@@ -143,7 +143,7 @@
       ]
     },
     "vision_range": {
-      "value": 5,
+      "value": 10,
       "name": "Vision range",
       "description": "How many tiles the actor can see. They only look directly left, right, up and down",
       "range": [

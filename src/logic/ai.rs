@@ -172,11 +172,21 @@ fn move_action_system(
                         };
                         let cost = (move_vector.x.abs() + move_vector.y.abs()) as f32
                             * config.game.hunger_increase.value;
-                        let score = (if person_food.apples > person_food.oranges {
-                            food_amount.apples as f32
+                        let max_food_of_type = config.ai.food_amount_goal.value / 2;
+                        let apple_preference = if person_food.apples < max_food_of_type {
+                            1.0 - person_food.apples as f32
+                                / (1.0 + person_food.oranges as f32 + person_food.apples as f32)
                         } else {
-                            food_amount.oranges as f32
-                        }) - cost;
+                            0.0
+                        };
+                        let orange_preference = if person_food.oranges < max_food_of_type {
+                            1.0 - apple_preference
+                        } else {
+                            0.0
+                        };
+                        let score = apple_preference * food_amount.apples as f32
+                            + orange_preference * food_amount.oranges as f32
+                            - cost;
                         if score > best_score {
                             best_score = score;
                             best = Some(info.coords);
