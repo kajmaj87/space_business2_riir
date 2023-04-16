@@ -26,6 +26,11 @@ pub struct Hunger {
 pub struct Person;
 
 #[derive(Component)]
+pub struct Male;
+#[derive(Component)]
+pub struct Female;
+
+#[derive(Component)]
 pub struct Age(pub u32);
 
 #[derive(Component)]
@@ -50,14 +55,14 @@ pub struct Knowledge {
 }
 
 #[derive(Bundle)]
-struct PersonBundle {
-    name: Name,
-    type_marker: Person,
-    age: Age,
-    hunger: Hunger,
-    food: FoodAmount,
-    position: VirtualCoords,
-    knowledge: Knowledge,
+pub struct PersonBundle {
+    pub name: Name,
+    pub type_marker: Person,
+    pub age: Age,
+    pub hunger: Hunger,
+    pub food: FoodAmount,
+    pub position: VirtualCoords,
+    pub knowledge: Knowledge,
 }
 
 impl Default for PersonBundle {
@@ -96,7 +101,6 @@ impl Plugin for PeoplePlugin {
             .add_system(hunger_system)
             .add_system(move_system)
             .add_system(foraging_system)
-            .add_system(breeding_system)
             .add_system(aging_system)
             // we need to despawn enities separately so that no commands use them in wrong moment
             .add_system(cleanup_system.in_base_set(CoreSet::PostUpdate));
@@ -123,17 +127,20 @@ pub fn init_people(
         let x = random::<u32>() % config.map.size_x.value;
         let y = random::<u32>() % config.map.size_y.value;
         if lookup.entities.get(&RealCoords { x, y }).is_none() {
-            let person = commands
-                .spawn(PersonBundle {
-                    position: VirtualCoords {
-                        x: x as i32,
-                        y: y as i32,
-                    },
-                    age: Age(random::<u32>() % config.game.max_person_age.value),
-                    ..default()
-                })
-                .id();
-            lookup.entities.insert(RealCoords { x, y }, person);
+            let mut person = commands.spawn(PersonBundle {
+                position: VirtualCoords {
+                    x: x as i32,
+                    y: y as i32,
+                },
+                age: Age(random::<u32>() % config.game.max_person_age.value),
+                ..default()
+            });
+            if random::<u8>() % 2 == 0 {
+                person.insert(Male);
+            } else {
+                person.insert(Female);
+            }
+            lookup.entities.insert(RealCoords { x, y }, person.id());
             trace!(
                 "Person spawned at {}, {}. Lookup size: {}",
                 x,
@@ -298,44 +305,7 @@ fn foraging_system(
     }
 }
 
-#[measured]
-pub fn breeding_system(
-    mut commands: Commands,
-    mut people: Query<(&mut FoodAmount, &VirtualCoords), With<Person>>,
-    config: Res<Config>,
-    mut lookup: ResMut<Lookup<Person>>,
-) {
-    for (mut person_food_amount, coords) in people.iter_mut() {
-        let free_space = free_neighbouring_coords(&config, coords, &lookup);
-        if person_food_amount.apples > config.game.food_for_baby.value
-            && person_food_amount.oranges > config.game.food_for_baby.value
-            && !free_space.is_empty()
-        {
-            info!(
-                "I'm having a baby! My food is: {}",
-                person_food_amount.apples + person_food_amount.oranges
-            );
-            let baby_oranges = person_food_amount.oranges / 2;
-            let baby_apples = person_food_amount.apples / 2;
-            person_food_amount.apples -= baby_apples;
-            person_food_amount.oranges -= baby_oranges;
-            let baby_coords = free_space[random::<usize>() % free_space.len()];
-            let baby = commands
-                .spawn(PersonBundle {
-                    food: FoodAmount {
-                        apples: baby_apples,
-                        oranges: baby_oranges,
-                    },
-                    position: baby_coords,
-                    ..Default::default()
-                })
-                .id();
-            lookup.entities.insert(baby_coords.to_real(&config), baby);
-        }
-    }
-}
-
-fn free_neighbouring_coords(
+pub fn free_neighbouring_coords(
     config: &Res<Config>,
     coords: &VirtualCoords,
     lookup: &ResMut<Lookup<Person>>,
@@ -350,11 +320,45 @@ fn free_neighbouring_coords(
                 x: coords.x + dx,
                 y: coords.y + dy,
             };
-            if lookup.entities.get(&new_position.to_real(config)).is_none() {
+            // those two can be the same in flat earth or rings
+            let real_position = new_position.to_real(config);
+            let origin_position = coords.to_real(config);
+            if real_position != origin_position
+                && lookup.entities.get(&new_position.to_real(config)).is_none()
+            {
                 result.push(new_position);
             }
         }
     }
+    result
+}
+
+pub fn occupied_neighbouring_coords(
+    config: &Res<Config>,
+    coords: &VirtualCoords,
+    lookup: &Res<Lookup<Person>>,
+) -> Vec<VirtualCoords> {
+    let mut result = Vec::new();
+    for dx in -1..=1 {
+        for dy in -1..=1 {
+            if dx == 0 && dy == 0 {
+                continue;
+            }
+            let new_position = VirtualCoords {
+                x: coords.x + dx,
+                y: coords.y + dy,
+            };
+            // those two can be the same in flat earth or rings
+            let real_position = new_position.to_real(config);
+            let origin_position = coords.to_real(config);
+            if real_position != origin_position
+                && lookup.entities.get(&new_position.to_real(config)).is_some()
+            {
+                result.push(new_position);
+            }
+        }
+    }
+    warn!("Occupied neighbours: {:?}, I'm at: {:?}", result, coords);
     result
 }
 
@@ -380,8 +384,6 @@ fn cleanup_system(
                     if let Some((_, mut winner_food)) = lottery_person.iter_mut().choose(&mut rng) {
                         winner_food.apples += food_to_inherit.apples;
                         winner_food.oranges += food_to_inherit.oranges;
-                    } else {
-                        panic!("No one to inherit food from dead person");
                     }
                 }
             }
