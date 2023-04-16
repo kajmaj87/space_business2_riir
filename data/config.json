@@ -75,7 +75,7 @@
       "description": "Each person will die after that many turns. 0 means that people do not die of old age."
     },
     "person_ttl": {
-      "value": 300,
+      "value": 60,
       "name": "Person TTL",
       "description": "How many frames to wait until removing dead person entity from game"
     },
