@@ -43,7 +43,6 @@ impl Plugin for AiPlugin {
             .add_system(move_scorer_system.in_set(BigBrainSet::Scorers))
             .add_system(look_around_action_system.in_set(BigBrainSet::Actions))
             .add_system(missing_info_scorer_system.in_set(BigBrainSet::Scorers))
-            .add_system(brain_wash)
             .add_system(init_brains);
     }
 }
@@ -91,7 +90,6 @@ fn missing_info_scorer_system(
         if let Ok(knowledge) = info.get(*actor) {
             if knowledge.infos.is_empty() {
                 score.set(1.0);
-                warn!("{} has no info", actor.index());
             } else {
                 score.set(0.0);
             }
@@ -113,7 +111,7 @@ fn look_around_action_system(
         just_execute(state, || {
             if let Ok(coords) = people.get(*actor) {
                 let food = find_food(&food_lookup, &config, coords, config.ai.vision_range.value);
-                warn!("{} found {} food sources", actor.index(), food.len());
+                debug!("{} found {} food sources", actor.index(), food.len());
                 commands.entity(*actor).insert(Knowledge { infos: food });
             }
         })
@@ -157,9 +155,7 @@ fn move_action_system(
     mut query: Query<(&Actor, &mut ActionState, &MoveAction)>,
 ) {
     let mut random = thread_rng();
-    warn!("Move action system");
     for (Actor(actor), state, _) in query.iter_mut() {
-        // warn!("{} is moving, state is {:?}", actor.index(), state);
         just_execute(state, || {
             let destination = if let Ok((person_food, coords)) = person.get(*actor) {
                 let mut best = None;
@@ -192,17 +188,15 @@ fn move_action_system(
                             best = Some(info.coords);
                         }
                     }
-                    warn!("person {} had no knowledge", actor.index());
                 }
-                warn!("{:?} has best score of {}", best, best_score);
+                debug!("{:?} has best score of {}", best, best_score);
                 best
             } else {
-                warn!("{} is not a person", actor.index());
-                None
+                panic!("{} is not a person with coords", actor.index());
             };
 
             let destination = if let Some(destination) = destination {
-                warn!(
+                debug!(
                     "{} is moving to best position found {:?}",
                     actor.index(),
                     destination
@@ -220,15 +214,13 @@ fn move_action_system(
                     dx = 0;
                     dy = random.gen_range(-1..=1);
                 }
-                warn!("{} is moving randomly by ({}, {})", actor.index(), dx, dy);
                 if let Ok((_, coords)) = person.get(*actor) {
-                    warn!("{} is a person", actor.index());
                     VirtualCoords {
                         x: coords.x + dx,
                         y: coords.y + dy,
                     }
                 } else {
-                    panic!("{} is not a person", actor.index());
+                    panic!("{} is not a person with coords", actor.index());
                 }
             };
             commands
@@ -249,7 +241,7 @@ fn move_scorer_system(
 ) {
     for (Actor(actor), mut score) in query.iter_mut() {
         if already_moving.get(*actor).is_ok() {
-            warn!("{} is already moving", actor.index());
+            debug!("{} is already moving", actor.index());
             score.set(0.0);
         } else if let Ok(food) = food_amount.get(*actor) {
             let food_goal = config.ai.food_amount_goal.value;
@@ -262,7 +254,7 @@ fn move_scorer_system(
                     / food_goal as f32
                     + food_threshold,
             );
-            warn!("{} has score of {} for moving", actor.index(), s);
+            debug!("{} has score of {} for moving", actor.index(), s);
             score.set(s);
         }
     }
@@ -277,13 +269,13 @@ pub fn eat_action_system(
 ) {
     for (Actor(actor), state, _eat) in query.iter_mut() {
         if let Ok((mut hunger, mut food)) = hungers.get_mut(*actor) {
-            warn!("{} is eating", actor.index());
+            trace!("{} is eating", actor.index());
             just_execute(state, || {
                 if hunger.apple > 1.0 && food.apples > 0 {
                     let old_hunger = hunger.apple;
                     hunger.apple -= config.game.hunger_decrease.value;
                     food.apples -= 1;
-                    debug!(
+                    trace!(
                         "Person ate something, food left: {}, hunger for apples was: {}, hunger for apples is: {}",
                         food.apples + food.oranges,
                         old_hunger,
@@ -293,7 +285,7 @@ pub fn eat_action_system(
                     let old_hunger = hunger.orange;
                     hunger.orange -= config.game.hunger_decrease.value;
                     food.oranges -= 1;
-                    debug!(
+                    trace!(
                         "Person ate something, food left: {}, hunger for oranges was: {}, hunger for oranges is: {}",
                         food.apples + food.oranges,
                         old_hunger,
@@ -302,11 +294,11 @@ pub fn eat_action_system(
                 } else {
                     mark_entity_as_dead(*actor, &mut commands, &config);
                     if hunger.orange > 1.0 {
-                        warn!("Person {} has died of orange hunger", actor.index());
+                        info!("Person {} has died of orange hunger", actor.index());
                     } else if hunger.apple > 1.0 {
-                        warn!("Person {} has died of apple hunger", actor.index());
+                        info!("Person {} has died of apple hunger", actor.index());
                     } else {
-                        warn!("Person {} has died of unknown reason", actor.index());
+                        info!("Person {} has died of unknown reason", actor.index());
                     }
                 }
             });

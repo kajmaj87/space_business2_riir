@@ -35,7 +35,7 @@ pub fn add_interaction_system(
                     a: person,
                     b: *people.entities.get(&neighbor.to_real(&config)).unwrap(),
                 };
-                warn!("Interaction added: {:?}", interaction);
+                debug!("Interaction added: {:?}", interaction);
                 commands.spawn(interaction);
             }
         }

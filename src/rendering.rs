@@ -1,8 +1,9 @@
 mod camera;
 mod planet;
 mod tiles;
-mod ui;
+pub mod ui;
 
+use crate::stats;
 use bevy::app::StartupSet;
 use bevy::prelude::{App, IntoSystemConfig, Plugin};
 use bevy_ecs_tilemap::prelude::*;
@@ -22,7 +23,7 @@ impl Plugin for RenderingPlugin {
                 open_settings_panel: ui::SettingsPanel::Game,
             })
             .add_system(ui::settings)
-            .add_system(ui::food_statistics)
+            .add_system(stats::ui::food_statistics)
             .add_system(planet::death_system)
             .add_system(planet::missing_sprite_setter_system)
             .add_system(planet::translation_update_system);

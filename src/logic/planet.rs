@@ -27,14 +27,14 @@ pub struct FoodLookup {
 }
 
 #[derive(Resource)]
-pub struct Time(pub u32);
+pub struct TotalTicks(pub u32);
 
 // This system will increase food amount for all food sources
 #[measured]
 pub fn food_growth(
     mut query: Query<(Entity, &FoodSource, &mut FoodAmount, &VirtualCoords)>,
     config: Res<Config>,
-    time: Res<Time>,
+    time: Res<TotalTicks>,
 ) {
     for (_, source, mut food_amount, coords) in query.iter_mut() {
         let r = rand::random::<f32>();
@@ -63,13 +63,13 @@ pub fn food_growth(
 
 // this system increases time by 1 every frame
 #[measured]
-pub fn time_system(mut time: ResMut<Time>) {
+pub fn time_system(mut time: ResMut<TotalTicks>) {
     time.0 += 1;
 }
 
 // this function checks if food is in growing season
 fn is_in_growing_season(
-    time: &Time,
+    time: &TotalTicks,
     planet_height: u32,
     food_location: u32,
     year_length: u32,
@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_is_in_growing_season() {
-        let time = Time(0);
+        let time = TotalTicks(0);
         let planet_height = 50;
         let year_length = 100;
         let growing_season_length = 0.10;
@@ -137,7 +137,7 @@ mod tests {
             ),
             false
         );
-        let time = Time(95);
+        let time = TotalTicks(95);
         let food_location = 48;
         assert_eq!(
             is_in_growing_season(
@@ -189,7 +189,7 @@ mod tests {
         ) {
             return true;
         }
-        let time = Time(time);
+        let time = TotalTicks(time);
         return (0..planet_height)
             .filter(|&i| {
                 is_in_growing_season(&time, planet_height, i, year_length, growing_season_length)
@@ -266,14 +266,14 @@ mod tests {
         time: u32,
     ) -> bool {
         let first = is_in_growing_season(
-            &Time(time),
+            &TotalTicks(time),
             planet_height,
             food_location,
             year_length,
             growing_season_length,
         );
         let second = is_in_growing_season(
-            &Time(time),
+            &TotalTicks(time),
             planet_height,
             next_food_location,
             year_length,
@@ -281,7 +281,7 @@ mod tests {
         );
         if first && !second {
             is_in_growing_season(
-                &Time(time + 1),
+                &TotalTicks(time + 1),
                 planet_height,
                 next_food_location,
                 year_length,

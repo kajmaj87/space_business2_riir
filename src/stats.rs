@@ -1,6 +1,6 @@
 pub mod components;
 mod economy;
-mod ui;
+pub mod ui;
 
 use bevy::prelude::{App, Plugin};
 

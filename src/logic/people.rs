@@ -174,7 +174,7 @@ pub fn aging_system(
         age.0 += 1;
         if age.0 > config.game.max_person_age.value && config.game.max_person_age.value > 0 {
             mark_entity_as_dead(person, &mut commands, &config);
-            warn!(
+            debug!(
                 "Person {} died of old age being {} turns old",
                 person.index(),
                 age.0
@@ -240,22 +240,10 @@ pub fn move_system(
     mut person_lookup: ResMut<Lookup<Person>>,
 ) {
     for (person, move_component, coords) in query.iter_mut() {
-        warn!("Move system: person {}", person.index());
-
-        // todo: remove only one tile of move per tick and only remove component when its empty
-        // todo: change move to move target (GridCoords)
-        // let (dx, dy) = move_component
-        warn!("Move system: move component {:?}", move_component.dest);
-        warn!("Move system: coords {:?}", coords);
         let move_vector = VirtualCoords {
             x: move_component.dest.x - coords.to_real(&config).x as i32,
             y: move_component.dest.y - coords.to_real(&config).y as i32,
         };
-        warn!(
-            "Move system: move vector {:?} for person {}",
-            move_vector,
-            person.index()
-        );
         let (delta_x, delta_y) =
             // horizontal move
             if move_vector.x > 0 {
@@ -269,20 +257,15 @@ pub fn move_system(
             } else {
                 (0, 0)
             };
-        warn!(
-            "Move system: delta {:?} for person {}",
-            (delta_x, delta_y),
-            person.index()
-        );
-
         if delta_x == 0 && delta_y == 0 {
             commands.entity(person).remove::<MoveTo>();
         }
         trace!(
-            "Person {} moved from {:?} by {:?}",
+            "Person {} moved from {:?} by {:?} (move vector {:?})",
             person.index(),
             coords,
-            (delta_x, delta_y)
+            (delta_x, delta_y),
+            move_vector
         );
         let new_position = VirtualCoords {
             x: coords.x + delta_x,
@@ -298,14 +281,8 @@ pub fn move_system(
                 .entities
                 .insert(new_position.to_real(&config), person);
             person_lookup.entities.remove(&coords.to_real(&config));
-            warn!(
-                "person {} moved from {:?} to {:?}",
-                person.index(),
-                coords,
-                new_position
-            );
         } else {
-            warn!(
+            debug!(
                 "Person {} tried to move to {:?} but there is already someone there",
                 person.index(),
                 new_position
@@ -403,7 +380,7 @@ pub fn occupied_neighbouring_coords(
             }
         }
     }
-    warn!("Occupied neighbours: {:?}, I'm at: {:?}", result, coords);
+    debug!("Occupied neighbours: {:?}, I'm at: {:?}", result, coords);
     result
 }
 
@@ -422,7 +399,7 @@ fn cleanup_system(
             ttl.0 -= 1;
         } else {
             if let Ok((_, coords, food_to_inherit)) = query_person.get(entity) {
-                warn!("Person {} died, removing from coords", entity.index());
+                debug!("Person {} died, removing from coords", entity.index());
                 let mut rng = rand::thread_rng();
                 people.entities.remove(&coords.to_real(&config));
                 if config.game.death_lottery.value {
