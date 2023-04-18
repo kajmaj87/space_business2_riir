@@ -32,6 +32,12 @@ pub struct Male;
 pub struct Female;
 
 #[derive(Component)]
+pub struct Child;
+
+#[derive(Component)]
+pub struct Old;
+
+#[derive(Component)]
 pub struct Fertile;
 
 #[derive(Component)]
@@ -198,6 +204,16 @@ fn fertility_system(
             } else {
                 commands.entity(person).remove::<Fertile>();
             }
+            if is_male_child(age.0, &config) {
+                commands.entity(person).insert(Child);
+            } else {
+                commands.entity(person).remove::<Child>();
+            }
+            if is_male_old(age.0, &config) {
+                commands.entity(person).insert(Old);
+            } else {
+                commands.entity(person).remove::<Old>();
+            }
         }
         if let Ok(_female) = females.get(person) {
             if is_in_female_fertile_age(age.0, &config) {
@@ -205,22 +221,46 @@ fn fertility_system(
             } else {
                 commands.entity(person).remove::<Fertile>();
             }
+            if is_female_child(age.0, &config) {
+                commands.entity(person).insert(Child);
+            } else {
+                commands.entity(person).remove::<Child>();
+            }
+            if is_female_old(age.0, &config) {
+                commands.entity(person).insert(Old);
+            } else {
+                commands.entity(person).remove::<Old>();
+            }
         }
     }
 }
 
 fn is_in_male_fertile_age(age: u32, config: &Config) -> bool {
+    !is_male_child(age, config) && !is_male_old(age, config)
+}
+
+fn is_male_old(age: u32, config: &Config) -> bool {
+    (age as f32)
+        > (config.game.max_fertile_age_male.value * config.game.max_person_age.value as f32)
+}
+
+fn is_male_child(age: u32, config: &Config) -> bool {
     (config.game.min_fertile_age_male.value * config.game.max_person_age.value as f32)
-        < (age as f32)
-        && (age as f32)
-            < (config.game.max_fertile_age_male.value * config.game.max_person_age.value as f32)
+        > (age as f32)
 }
 
 fn is_in_female_fertile_age(age: u32, config: &Config) -> bool {
+    !is_female_child(age, config) && !is_female_old(age, config)
+}
+
+fn is_female_child(age: u32, config: &Config) -> bool {
     (config.game.min_fertile_age_female.value * config.game.max_person_age.value as f32)
-        < (age as f32)
-        && (age as f32)
-            < (config.game.max_fertile_age_female.value * config.game.max_person_age.value as f32)
+        > (age as f32)
+}
+
+fn is_female_old(age: u32, config: &Config) -> bool {
+    (age as f32)
+        > (config.game.max_fertile_age_female.value * config.game.max_person_age.value as f32)
 }
 
 pub fn mark_entity_as_dead(person: Entity, commands: &mut Commands, config: &Res<Config>) {

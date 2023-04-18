@@ -94,7 +94,7 @@
       ]
     },
     "growing_season_length": {
-      "value": 0.15,
+      "value": 1.0,
       "name": "Growing season length",
       "description": "How many frames are in one growing season",
       "range": [
@@ -146,11 +146,11 @@
   },
   "map": {
     "size_x": {
-      "value": 60,
+      "value": 50,
       "name": "Map size x"
     },
     "size_y": {
-      "value": 60,
+      "value": 80,
       "name": "Map size y"
     },
     "geometry": {
@@ -184,7 +184,7 @@
       ]
     },
     "vision_range": {
-      "value": 1,
+      "value": 20,
       "name": "Vision range",
       "description": "How many tiles the actor can see. They only look directly left, right, up and down",
       "range": [

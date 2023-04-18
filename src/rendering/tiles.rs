@@ -9,8 +9,7 @@ use crate::{
     logic::components::{FoodAmount, FoodSource, FoodType},
 };
 
-const EMPTY_FOOD_TILE_INDEX: u32 = 2;
-const FIRST_APPLE_TILE_INDEX: u32 = 3;
+const FIRST_APPLE_TILE_INDEX: u32 = 2;
 const FIRST_ORANGE_TILE_INDEX: u32 = 6;
 pub const TILE_SIZE: f32 = 16.0;
 
@@ -19,11 +18,8 @@ pub fn update_food_tiles(
 ) {
     for (mut tile, food_amount, source) in query.iter_mut() {
         match source.0 {
-            FoodType::Apple => tile.0 = food_amount.apples + FIRST_APPLE_TILE_INDEX - 1,
-            FoodType::Orange => tile.0 = food_amount.oranges + FIRST_ORANGE_TILE_INDEX - 1,
-        }
-        if food_amount.apples == 0 && food_amount.oranges == 0 {
-            tile.0 = EMPTY_FOOD_TILE_INDEX;
+            FoodType::Apple => tile.0 = food_amount.apples + FIRST_APPLE_TILE_INDEX,
+            FoodType::Orange => tile.0 = food_amount.oranges + FIRST_ORANGE_TILE_INDEX,
         }
     }
 }
@@ -44,7 +40,7 @@ pub fn randomize_tiles(
         if random.gen_range(0.0..1.0)
             < (size * threshold - ((coords.x + coords.y) as f32) * sparsing_speed) / size
         {
-            tile.0 = random.gen_range(3..6);
+            tile.0 = random.gen_range(2..6);
             source = FoodSource(FoodType::Apple);
             food_amount = FoodAmount {
                 apples: tile.0 - FIRST_APPLE_TILE_INDEX,
@@ -58,7 +54,7 @@ pub fn randomize_tiles(
                     * sparsing_speed)
                 / size
         {
-            tile.0 = random.gen_range(6..9);
+            tile.0 = random.gen_range(6..10);
             source = FoodSource(FoodType::Orange);
             food_amount = FoodAmount {
                 apples: 0,

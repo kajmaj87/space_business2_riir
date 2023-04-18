@@ -26,6 +26,7 @@ impl Plugin for RenderingPlugin {
             .add_system(stats::ui::food_statistics)
             .add_system(planet::death_system)
             .add_system(planet::missing_sprite_setter_system)
+            .add_system(planet::render_aging_system)
             .add_system(planet::translation_update_system);
     }
 }
