@@ -1,3 +1,4 @@
+use crate::debug::components::Performance;
 use bevy::prelude::*;
 
 use crate::config::Config;
@@ -7,7 +8,9 @@ use crate::{
     logic::components::{Dead, Person},
     rendering::tiles::TILE_SIZE,
 };
+use macros::measured;
 
+#[measured]
 pub fn death_system(
     mut query: Query<(Entity, &Dead, &mut Handle<Image>), Added<Dead>>,
     child: Query<&Child>,
@@ -24,6 +27,7 @@ pub fn death_system(
 
 #[allow(clippy::type_complexity)]
 #[allow(clippy::too_many_arguments)]
+#[measured]
 pub fn render_aging_system(
     mut changed_males: Query<
         (Entity, &Person, &mut Handle<Image>),
@@ -127,6 +131,7 @@ fn update_person_texture(
 
 #[allow(clippy::type_complexity)]
 #[allow(clippy::too_many_arguments)]
+#[measured]
 pub fn missing_sprite_setter_system(
     mut commands: Commands,
     query: Query<(Entity, &VirtualCoords), (With<Person>, Without<Handle<Image>>)>,
@@ -164,6 +169,7 @@ pub fn missing_sprite_setter_system(
     }
 }
 
+#[measured]
 pub fn translation_update_system(
     mut query: Query<(&VirtualCoords, &mut Transform), Changed<VirtualCoords>>,
     config: Res<Config>,
