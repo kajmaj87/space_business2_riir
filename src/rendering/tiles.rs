@@ -1,5 +1,7 @@
+use crate::debug::components::Performance;
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use macros::measured;
 use rand::{thread_rng, Rng};
 
 use crate::logic::components::Lookup;
@@ -13,6 +15,7 @@ const FIRST_APPLE_TILE_INDEX: u32 = 2;
 const FIRST_ORANGE_TILE_INDEX: u32 = 6;
 pub const TILE_SIZE: f32 = 16.0;
 
+#[measured]
 pub fn update_food_tiles(
     mut query: Query<(&mut TileTextureIndex, &FoodAmount, &FoodSource), Changed<FoodAmount>>,
 ) {
@@ -72,7 +75,7 @@ pub fn randomize_tiles(
         // if food_amount.apples == 0 && food_amount.oranges == 0 {
         //     tile.0 = EMPTY_FOOD_TILE_INDEX;
         // }
-        if (2..9).contains(&tile.0) {
+        if (2..10).contains(&tile.0) {
             commands.entity(entity).insert(source).insert(food_amount);
             // insert entity to food_lookup using coords as key
             food_lookup.entities.insert(coords.to_real(&config), entity);

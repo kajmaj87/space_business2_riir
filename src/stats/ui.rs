@@ -11,9 +11,11 @@ use bevy_egui::{egui, EguiContexts};
 
 use crate::stats::economy::Statistics;
 
+#[allow(clippy::too_many_arguments)]
 pub fn stats_window(
     mut egui_context: EguiContexts,
     stats: Res<Statistics>,
+    total_entities: Query<Entity>,
     males_fertile: Query<&Male, With<Fertile>>,
     females_fertile: Query<&Female, With<Fertile>>,
     males_infertile: Query<&Male, Without<Fertile>>,
@@ -23,6 +25,7 @@ pub fn stats_window(
     egui::Window::new("Stats").show(egui_context.ctx_mut(), |ui| {
         let males = males_fertile.iter().count() + males_infertile.iter().count();
         let females = females_fertile.iter().count() + females_infertile.iter().count();
+        ui.label(format!("Total entities: {}", total_entities.iter().count()));
         ui.label(format!("People: {}", stats.current_people));
         ui.label(format!(
             "Males (fertile): {} ({})",
