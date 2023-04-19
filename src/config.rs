@@ -37,6 +37,7 @@ pub struct GameConfig {
     pub year_length: ConfigValue<u32>,
     pub growing_season_length: ConfigValue<f32>,
     pub death_lottery: ConfigValue<bool>,
+    pub trade_allowed: ConfigValue<bool>,
     pub min_fertile_age_male: ConfigValue<f32>,
     pub max_fertile_age_male: ConfigValue<f32>,
     pub min_fertile_age_female: ConfigValue<f32>,

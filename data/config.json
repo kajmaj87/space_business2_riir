@@ -107,6 +107,11 @@
       "name": "Death lottery",
       "description": "If checked a random person will inherit all food after someone dies. Otherwise the food goes to waste."
     },
+    "trade_allowed": {
+      "value": false,
+      "name": "Trade allowed",
+      "description": "If checked people can trade food with each other"
+    },
     "min_fertile_age_male": {
       "value": 0.2,
       "name": "Min fertile male age",
@@ -184,7 +189,7 @@
       ]
     },
     "vision_range": {
-      "value": 20,
+      "value": 6,
       "name": "Vision range",
       "description": "How many tiles the actor can see. They only look directly left, right, up and down",
       "range": [

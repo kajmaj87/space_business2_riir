@@ -70,6 +70,7 @@ pub fn settings(
                 draw_config_value(ui, &mut config.game.year_length);
                 draw_config_value(ui, &mut config.game.growing_season_length);
                 draw_bool_config_value(ui, &mut config.game.death_lottery);
+                draw_bool_config_value(ui, &mut config.game.trade_allowed);
             }),
             SettingsPanel::Map => add_options_grid(ui, |ui| {
                 draw_config_value(ui, &mut config.map.size_x);

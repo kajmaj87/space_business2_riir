@@ -110,7 +110,11 @@ fn create_baby(
 pub fn trade_interaction_system(
     query: Query<&PeopleInteraction>,
     people: Query<(&Person, &mut FoodAmount)>,
+    config: Res<Config>,
 ) {
+    if !config.game.trade_allowed.value {
+        return;
+    }
     for interaction in query.iter() {
         let (a, b) = (people.get(interaction.a), people.get(interaction.b));
         if let (Ok((_, a_food)), Ok((_, b_food))) = (a, b) {
@@ -122,7 +126,7 @@ pub fn trade_interaction_system(
             // mrs < 1 means agent a is poor in oranges and rich in apples
             // mrs > 1 means agent a is rich in oranges and poor in apples
             if mrs_a < 1.0 && mrs_b > 1.0 {
-                // warn!("A is better off: {:?} vs {:?}, food_a {:?}, food_b {:?}, ratio: {}, good price: {} oranges for an apple", mrs_a, mrs_b, a_food, b_food, mrs_a / mrs_b, (mrs_a*mrs_b).sqrt());
+                debug!("A is better off: {:?} vs {:?}, food_a {:?}, food_b {:?}, ratio: {}, good price: {} oranges for an apple", mrs_a, mrs_b, a_food, b_food, mrs_a / mrs_b, (mrs_a*mrs_b).sqrt());
                 let apples_to_trade = if a_food.apples > b_food.apples {
                     (a_food.apples - b_food.apples) / 2
                 } else {
@@ -142,7 +146,7 @@ pub fn trade_interaction_system(
                         b_food.oranges - oranges_to_trade,
                     ) > u_b
                 {
-                    warn!(
+                    debug!(
                         "Trade accepted for {} o/a (p: {}), A: {:?} -> {:?}, B: {:?} -> {:?}",
                         oranges_to_trade as f32 / apples_to_trade as f32,
                         (mrs_a * mrs_b).sqrt(),
