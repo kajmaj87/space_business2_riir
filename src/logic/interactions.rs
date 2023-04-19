@@ -107,6 +107,80 @@ fn create_baby(
 }
 
 #[measured]
+pub fn trade_interaction_system(
+    query: Query<&PeopleInteraction>,
+    people: Query<(&Person, &mut FoodAmount)>,
+) {
+    for interaction in query.iter() {
+        let (a, b) = (people.get(interaction.a), people.get(interaction.b));
+        if let (Ok((_, a_food)), Ok((_, b_food))) = (a, b) {
+            let (a_food, b_food) = (a_food, b_food);
+            let u_a = calculate_utility(a_food.apples, a_food.oranges);
+            let u_b = calculate_utility(b_food.apples, b_food.oranges);
+            let mrs_a = calculate_marginal_rate_of_substitution(a_food.apples, a_food.oranges);
+            let mrs_b = calculate_marginal_rate_of_substitution(b_food.apples, b_food.oranges);
+            // mrs < 1 means agent a is poor in oranges and rich in apples
+            // mrs > 1 means agent a is rich in oranges and poor in apples
+            if mrs_a < 1.0 && mrs_b > 1.0 {
+                // warn!("A is better off: {:?} vs {:?}, food_a {:?}, food_b {:?}, ratio: {}, good price: {} oranges for an apple", mrs_a, mrs_b, a_food, b_food, mrs_a / mrs_b, (mrs_a*mrs_b).sqrt());
+                let apples_to_trade = if a_food.apples > b_food.apples {
+                    (a_food.apples - b_food.apples) / 2
+                } else {
+                    1
+                };
+                let oranges_to_trade = if a_food.oranges < b_food.oranges {
+                    (b_food.oranges - a_food.oranges) / 2
+                } else {
+                    1
+                };
+                if calculate_utility(
+                    a_food.apples - apples_to_trade,
+                    a_food.oranges + oranges_to_trade,
+                ) > u_a
+                    && calculate_utility(
+                        b_food.apples + apples_to_trade,
+                        b_food.oranges - oranges_to_trade,
+                    ) > u_b
+                {
+                    warn!(
+                        "Trade accepted for {} o/a (p: {}), A: {:?} -> {:?}, B: {:?} -> {:?}",
+                        oranges_to_trade as f32 / apples_to_trade as f32,
+                        (mrs_a * mrs_b).sqrt(),
+                        a_food,
+                        FoodAmount {
+                            apples: a_food.apples - apples_to_trade,
+                            oranges: a_food.oranges + oranges_to_trade,
+                        },
+                        b_food,
+                        FoodAmount {
+                            apples: b_food.apples + apples_to_trade,
+                            oranges: b_food.oranges - oranges_to_trade,
+                        }
+                    );
+                }
+            }
+        }
+    }
+}
+
+fn calculate_utility(apples: u32, oranges: u32) -> f32 {
+    ((apples as f32) * (oranges as f32)).sqrt()
+}
+
+fn calculate_apple_marginal_utility(apples: u32, oranges: u32) -> f32 {
+    calculate_utility(apples + 1, oranges) - calculate_utility(apples, oranges)
+}
+
+fn calculate_orange_marginal_utility(apples: u32, oranges: u32) -> f32 {
+    calculate_utility(apples, oranges + 1) - calculate_utility(apples, oranges)
+}
+
+fn calculate_marginal_rate_of_substitution(apples: u32, oranges: u32) -> f32 {
+    calculate_apple_marginal_utility(apples, oranges)
+        / calculate_orange_marginal_utility(apples, oranges)
+}
+
+#[measured]
 pub fn cleanup_interactions_system(
     query: Query<(Entity, &PeopleInteraction)>,
     mut commands: Commands,

@@ -15,7 +15,7 @@ pub enum FoodType {
 #[derive(Component)]
 pub struct FoodSource(pub FoodType);
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct FoodAmount {
     pub apples: u32,
     pub oranges: u32,

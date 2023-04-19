@@ -21,6 +21,7 @@ impl Plugin for LogicPlugin {
             .add_system(planet::food_growth)
             .add_system(interactions::add_interaction_system.in_base_set(CoreSet::First))
             .add_system(interactions::breeding_interaction_system)
+            .add_system(interactions::trade_interaction_system)
             .add_system(interactions::cleanup_interactions_system.in_base_set(CoreSet::PostUpdate));
     }
 }
