@@ -108,7 +108,7 @@
       "description": "If checked a random person will inherit all food after someone dies. Otherwise the food goes to waste."
     },
     "trade_allowed": {
-      "value": false,
+      "value": true,
       "name": "Trade allowed",
       "description": "If checked people can trade food with each other"
     },

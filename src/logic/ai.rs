@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::debug::components::Performance;
 use crate::logic::components::{FoodSource, Lookup};
+use crate::logic::interactions::calculate_marginal_rate_of_substitution;
 use crate::logic::measures::VirtualCoords;
 use crate::logic::people::{mark_entity_as_dead, Information, Knowledge, MoveTo};
 use bevy::prelude::*;
@@ -8,7 +9,6 @@ use big_brain::prelude::*;
 use big_brain::BigBrainPlugin;
 use macros::measured;
 use rand::{thread_rng, Rng};
-use std::cmp::max;
 
 use super::components::Dead;
 use super::components::{FoodAmount, Hunger, Person};
@@ -32,6 +32,12 @@ struct MissingInfo;
 #[derive(Clone, Component, Debug, ActionBuilder)]
 struct LookAround;
 
+#[derive(Clone, Component, Debug, ScorerBuilder)]
+struct TradeNeed;
+
+#[derive(Clone, Component, Debug, ActionBuilder)]
+struct GoToMarket;
+
 pub struct AiPlugin;
 
 impl Plugin for AiPlugin {
@@ -39,6 +45,8 @@ impl Plugin for AiPlugin {
         app.add_plugin(BigBrainPlugin)
             .add_system(eat_action_system.in_set(BigBrainSet::Actions))
             .add_system(hungry_scorer_system.in_set(BigBrainSet::Scorers))
+            .add_system(trade_need_scorer_system.in_set(BigBrainSet::Scorers))
+            .add_system(go_to_market_action_system.in_set(BigBrainSet::Actions))
             .add_system(move_action_system.in_set(BigBrainSet::Actions))
             .add_system(move_scorer_system.in_set(BigBrainSet::Scorers))
             .add_system(look_around_action_system.in_set(BigBrainSet::Actions))
@@ -56,10 +64,10 @@ pub fn init_brains(
         info!("Adding a thinker @{}", entity.index());
         commands.entity(entity).insert(
             Thinker::build()
-                .picker(FirstToScore { threshold: 0.8 })
+                .picker(Highest)
                 .when(Hungry, Eat)
-                // .when(MissingInfo, LookAround)
-                .when(MoveNeed, MoveAction),
+                .when(MoveNeed, MoveAction)
+                .when(TradeNeed, GoToMarket),
         );
     }
 }
@@ -114,6 +122,48 @@ fn look_around_action_system(
                 debug!("{} found {} food sources", actor.index(), food.len());
                 commands.entity(*actor).insert(Knowledge { infos: food });
             }
+        })
+    }
+}
+
+#[measured]
+fn trade_need_scorer_system(
+    food: Query<&FoodAmount>,
+    mut query: Query<(&Actor, &mut Score), With<TradeNeed>>,
+    config: Res<Config>,
+) {
+    for (Actor(actor), mut score) in query.iter_mut() {
+        if !config.game.trade_allowed.value {
+            score.set(0.0);
+            continue;
+        }
+        if let Ok(food) = food.get(*actor) {
+            let mrs = calculate_marginal_rate_of_substitution(food.apples, food.oranges);
+            let need = mrs.max(1.0 / mrs) / 100.0;
+            // warn!("{} has a trade need of {} with mrs {}", actor.index(), need, mrs);
+            score.set(clamp(need));
+        }
+    }
+}
+
+#[measured]
+fn go_to_market_action_system(
+    config: Res<Config>,
+    mut query: Query<(&Actor, &mut ActionState, &GoToMarket)>,
+    mut commands: Commands,
+) {
+    for (Actor(actor), state, _) in query.iter_mut() {
+        just_execute(state, || {
+            let random_x = thread_rng().gen_range(-5..5);
+            let random_y = thread_rng().gen_range(-5..5);
+            let move_to = MoveTo {
+                dest: VirtualCoords {
+                    x: (config.map.size_x.value / 2) as i32 + random_x,
+                    y: (config.map.size_y.value / 2) as i32 + random_y,
+                },
+            };
+            warn!("{} is going to market at {:?}", actor.index(), move_to.dest);
+            commands.entity(*actor).insert(move_to);
         })
     }
 }
@@ -245,16 +295,20 @@ fn move_scorer_system(
             score.set(0.0);
         } else if let Ok(food) = food_amount.get(*actor) {
             let food_goal = config.ai.food_amount_goal.value;
-            let food_threshold = config.ai.food_amount_threshold.value;
+            // let food_threshold = config.ai.food_amount_threshold.value;
+            // let s = clamp(
+            //     (max(
+            //         food_goal as i32 - food.apples as i32,
+            //         food_goal as i32 - food.oranges as i32,
+            //     )) as f32
+            //         / food_goal as f32
+            //         + food_threshold,
+            // );
             let s = clamp(
-                (max(
-                    food_goal as i32 - food.apples as i32,
-                    food_goal as i32 - food.oranges as i32,
-                )) as f32
-                    / food_goal as f32
-                    + food_threshold,
+                2.0 * (food_goal as f32 - (food.apples as f32 + food.oranges as f32))
+                    / food_goal as f32,
             );
-            debug!("{} has score of {} for moving", actor.index(), s);
+            // warn!("{} has score of {} for moving", actor.index(), s);
             score.set(s);
         }
     }
