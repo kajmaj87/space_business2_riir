@@ -37,11 +37,12 @@ pub fn randomize_tiles(
     for (entity, mut tile, coords) in query.iter_mut() {
         let source;
         let food_amount;
-        let threshold = config.map.tree_tile_probability.value;
         let sparsing_speed = 0.4;
         let size = config.map.size_x.value as f32;
         if random.gen_range(0.0..1.0)
-            < (size * threshold - ((coords.x + coords.y) as f32) * sparsing_speed) / size
+            < (size * config.map.apple_tree_tile_probability.value
+                - ((coords.x + coords.y) as f32) * sparsing_speed)
+                / size
         {
             tile.0 = random.gen_range(2..6);
             source = FoodSource(FoodType::Apple);
@@ -50,7 +51,7 @@ pub fn randomize_tiles(
                 oranges: 0,
             };
         } else if random.gen_range(0.0..1.0)
-            < (size * threshold
+            < (size * config.map.orange_tree_tile_probability.value
                 - (((config.map.size_x.value - coords.to_real(&config).x)
                     + (config.map.size_y.value - coords.to_real(&config).y))
                     as f32)

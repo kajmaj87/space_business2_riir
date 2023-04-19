@@ -6,29 +6,17 @@ use bevy_egui::{egui, EguiContexts};
 use egui_extras::{Column, TableBuilder};
 // use bevy_prototype_debug_lines::*;
 
-use crate::config::Config;
 use crate::debug::components::Performance;
 
 pub fn debug_window(
     mut egui_context: EguiContexts,
     diagnostics: Res<Diagnostics>,
-    config: Res<Config>,
     performance: Res<Performance>,
 ) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
             egui::Window::new("Debug").show(egui_context.ctx_mut(), |ui| {
                 ui.label(format!("Rendering @{:.1}fps", average));
-                ui.label(format!(
-                    "Theoretical max population: {:.1}",
-                    config.map.size_x.value as f32
-                        * config.map.size_y.value as f32
-                        * config.map.tree_tile_probability.value
-                        * config.game.growth.value
-                        * config.game.hunger_decrease.value
-                        * config.game.growing_season_length.value
-                        / config.game.hunger_increase.value
-                ));
                 ui.collapsing("Performance Stats", |ui| {
                     TableBuilder::new(ui)
                         .striped(true)

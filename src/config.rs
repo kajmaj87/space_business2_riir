@@ -49,7 +49,8 @@ pub struct MapConfig {
     pub size_x: ConfigValue<u32>,
     pub size_y: ConfigValue<u32>,
     pub geometry: ConfigValue<GeometryType>,
-    pub tree_tile_probability: ConfigValue<f32>,
+    pub apple_tree_tile_probability: ConfigValue<f32>,
+    pub orange_tree_tile_probability: ConfigValue<f32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Component)]

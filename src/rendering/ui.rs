@@ -76,7 +76,8 @@ pub fn settings(
                 draw_config_value(ui, &mut config.map.size_x);
                 draw_config_value(ui, &mut config.map.size_y);
                 draw_geometry_type(ui, &mut config.map.geometry);
-                draw_config_value(ui, &mut config.map.tree_tile_probability);
+                draw_config_value(ui, &mut config.map.apple_tree_tile_probability);
+                draw_config_value(ui, &mut config.map.orange_tree_tile_probability);
             }),
             SettingsPanel::Ai => add_options_grid(ui, |ui| {
                 draw_config_value(ui, &mut config.ai.food_amount_goal);

@@ -163,9 +163,18 @@
       "name": "Geometry type",
       "description": "Torus - map is a torus, so the edges are connected. FlatEarth - you know it. RingVertical - vertically connected edges. RingHorizontal - horizontally connected edges"
     },
-    "tree_tile_probability": {
+    "apple_tree_tile_probability": {
       "value": 0.5,
-      "name": "Tree tile %",
+      "name": "Apple tile %",
+      "description": "How many tiles will be generates as trees (randomly)",
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "orange_tree_tile_probability": {
+      "value": 0.6,
+      "name": "Orange tile %",
       "description": "How many tiles will be generates as trees (randomly)",
       "range": [
         0.0,
