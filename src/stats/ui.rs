@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::debug::components::Performance;
 use crate::logic::components::{Age, Dead, FoodAmount, FoodSource, FoodType, Person};
 use crate::logic::people::{Female, Fertile, Male};
 use crate::rendering::ui::{
@@ -9,6 +10,7 @@ use bevy::prelude::*;
 use bevy_egui::egui::plot::{Corner, Legend, Plot, PlotPoints, Points};
 use bevy_egui::egui::{Color32, Ui};
 use bevy_egui::{egui, EguiContexts};
+use macros::measured;
 
 use crate::stats::economy::Statistics;
 
@@ -141,6 +143,7 @@ fn calculate_gini_coefficient(food_quantities: &[f64]) -> f64 {
     1.0 - 2.0 * (gini_numerator - 0.5 * cum_proportion_sum)
 }
 
+#[measured]
 pub fn food_statistics(
     mut egui_context: EguiContexts,
     stats: Res<Statistics>,
@@ -159,6 +162,8 @@ pub fn food_statistics(
         plot_ages(&mut config, query, ui);
     });
 }
+
+#[measured]
 pub fn money_statistics(
     mut egui_context: EguiContexts,
     stats: Res<Statistics>,
