@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::logic::components::{Age, Dead, FoodAmount, Person};
+use crate::logic::components::{Age, Dead, FoodAmount, FoodSource, FoodType, Person};
 use crate::logic::people::{Female, Fertile, Male};
 use crate::rendering::ui::{
     add_options_grid, create_histogram, create_plot_line, draw_config_value,
@@ -21,6 +21,9 @@ pub fn stats_window(
     males_infertile: Query<&Male, Without<Fertile>>,
     females_infertile: Query<&Female, Without<Fertile>>,
     people_wealth: Query<&FoodAmount, With<Person>>,
+    food_sources: Query<(&FoodSource, &FoodAmount)>,
+    people: Query<&Person>,
+    config: Res<Config>,
 ) {
     egui::Window::new("Stats").show(egui_context.ctx_mut(), |ui| {
         let males = males_fertile.iter().count() + males_infertile.iter().count();
@@ -40,6 +43,40 @@ pub fn stats_window(
         ui.label(format!("Food: {}", stats.current_food));
         ui.label(format!("Apples: {}", stats.current_apples));
         ui.label(format!("Oranges: {}", stats.current_oranges));
+        let mut growing_apple_trees = 0;
+        let mut growing_orange_trees = 0;
+        food_sources
+            .iter()
+            .for_each(|(food_source, food_amount)| match food_source.0 {
+                FoodType::Apple => {
+                    if food_amount.apples < 3 {
+                        growing_apple_trees += 1
+                    } else {
+                    }
+                }
+                FoodType::Orange => {
+                    if food_amount.oranges < 3 {
+                        growing_orange_trees += 1
+                    } else {
+                    }
+                }
+            });
+        ui.label(format!(
+            "Average apple growth: {:.1}",
+            growing_apple_trees as f32
+                * config.game.growth.value
+                * config.game.growing_season_length.value
+        ));
+        ui.label(format!(
+            "Average orange growth: {:.1}",
+            growing_orange_trees as f32
+                * config.game.growth.value
+                * config.game.growing_season_length.value
+        ));
+        ui.label(format!(
+            "Average consumption of each food: {:.1}",
+            people.iter().count() as f32 * config.game.hunger_increase.value
+        ));
         ui.label(format!(
             "Gini Coefficient: {:.3}",
             calculate_gini_coefficient(

@@ -118,52 +118,55 @@ pub fn trade_interaction_system(
     for interaction in query.iter() {
         let (a, b) = (people.get(interaction.a), people.get(interaction.b));
         if let (Ok((_, a_food)), Ok((_, b_food))) = (a, b) {
-            let (a_food, b_food) = (a_food, b_food);
-            let u_a = calculate_utility(a_food.apples, a_food.oranges);
-            let u_b = calculate_utility(b_food.apples, b_food.oranges);
-            let mrs_a = calculate_marginal_rate_of_substitution(a_food.apples, a_food.oranges);
-            let mrs_b = calculate_marginal_rate_of_substitution(b_food.apples, b_food.oranges);
             // mrs < 1 means agent a is poor in oranges and rich in apples
             // mrs > 1 means agent a is rich in oranges and poor in apples
+            let mrs_a = calculate_marginal_rate_of_substitution(a_food.apples, a_food.oranges);
+            let mrs_b = calculate_marginal_rate_of_substitution(b_food.apples, b_food.oranges);
             if mrs_a < 1.0 && mrs_b > 1.0 {
-                debug!("A is better off: {:?} vs {:?}, food_a {:?}, food_b {:?}, ratio: {}, good price: {} oranges for an apple", mrs_a, mrs_b, a_food, b_food, mrs_a / mrs_b, (mrs_a*mrs_b).sqrt());
-                let apples_to_trade = if a_food.apples > b_food.apples {
-                    (a_food.apples - b_food.apples) / 2
-                } else {
-                    1
-                };
-                let oranges_to_trade = if a_food.oranges < b_food.oranges {
-                    (b_food.oranges - a_food.oranges) / 2
-                } else {
-                    1
-                };
-                if calculate_utility(
-                    a_food.apples - apples_to_trade,
-                    a_food.oranges + oranges_to_trade,
-                ) > u_a
-                    && calculate_utility(
-                        b_food.apples + apples_to_trade,
-                        b_food.oranges - oranges_to_trade,
-                    ) > u_b
-                {
-                    debug!(
-                        "Trade accepted for {} o/a (p: {}), A: {:?} -> {:?}, B: {:?} -> {:?}",
-                        oranges_to_trade as f32 / apples_to_trade as f32,
-                        (mrs_a * mrs_b).sqrt(),
-                        a_food,
-                        FoodAmount {
-                            apples: a_food.apples - apples_to_trade,
-                            oranges: a_food.oranges + oranges_to_trade,
-                        },
-                        b_food,
-                        FoodAmount {
-                            apples: b_food.apples + apples_to_trade,
-                            oranges: b_food.oranges - oranges_to_trade,
-                        }
-                    );
-                }
+                trade_apples_for_oranges(a_food, b_food);
+            } else if mrs_a > 1.0 && mrs_b < 1.0 {
+                trade_apples_for_oranges(b_food, a_food);
             }
         }
+    }
+}
+
+fn trade_apples_for_oranges(a_food: &FoodAmount, b_food: &FoodAmount) {
+    let u_a = calculate_utility(a_food.apples, a_food.oranges);
+    let u_b = calculate_utility(b_food.apples, b_food.oranges);
+    let apples_to_trade = if a_food.apples > b_food.apples {
+        (a_food.apples - b_food.apples) / 2
+    } else {
+        1
+    };
+    let oranges_to_trade = if a_food.oranges < b_food.oranges {
+        (b_food.oranges - a_food.oranges) / 2
+    } else {
+        1
+    };
+    if calculate_utility(
+        a_food.apples - apples_to_trade,
+        a_food.oranges + oranges_to_trade,
+    ) > u_a
+        && calculate_utility(
+            b_food.apples + apples_to_trade,
+            b_food.oranges - oranges_to_trade,
+        ) > u_b
+    {
+        debug!(
+            "Trade accepted for {} o/a, A: {:?} -> {:?}, B: {:?} -> {:?}",
+            oranges_to_trade as f32 / apples_to_trade as f32,
+            a_food,
+            FoodAmount {
+                apples: a_food.apples - apples_to_trade,
+                oranges: a_food.oranges + oranges_to_trade,
+            },
+            b_food,
+            FoodAmount {
+                apples: b_food.apples + apples_to_trade,
+                oranges: b_food.oranges - oranges_to_trade,
+            }
+        );
     }
 }
 
