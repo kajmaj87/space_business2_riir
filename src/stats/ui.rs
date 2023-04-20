@@ -22,7 +22,7 @@ pub fn stats_window(
     females_infertile: Query<&Female, Without<Fertile>>,
     people_wealth: Query<&FoodAmount, With<Person>>,
     food_sources: Query<(&FoodSource, &FoodAmount)>,
-    people: Query<&Person>,
+    people: Query<(&Person, &Age)>,
     config: Res<Config>,
 ) {
     egui::Window::new("Stats").show(egui_context.ctx_mut(), |ui| {
@@ -76,6 +76,11 @@ pub fn stats_window(
         ui.label(format!(
             "Average consumption of each food: {:.1}",
             people.iter().count() as f32 * config.game.hunger_increase.value
+        ));
+        ui.label(format!(
+            "Average age: {:.0}",
+            people.iter().map(|(_, age)| { age.0 }).sum::<u32>() as f32
+                / people.iter().count() as f32
         ));
         ui.label(format!(
             "Gini Coefficient: {:.3}",
