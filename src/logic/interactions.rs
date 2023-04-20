@@ -167,20 +167,19 @@ pub fn trade_interaction_system(
     }
 }
 
-// todo: move to trade package
-pub fn calculate_utility(apples: u32, oranges: u32) -> f32 {
+fn calculate_utility(apples: u32, oranges: u32) -> f32 {
     ((apples as f32) * (oranges as f32)).sqrt()
 }
 
-pub fn calculate_apple_marginal_utility(apples: u32, oranges: u32) -> f32 {
+fn calculate_apple_marginal_utility(apples: u32, oranges: u32) -> f32 {
     calculate_utility(apples + 1, oranges) - calculate_utility(apples, oranges)
 }
 
-pub fn calculate_orange_marginal_utility(apples: u32, oranges: u32) -> f32 {
+fn calculate_orange_marginal_utility(apples: u32, oranges: u32) -> f32 {
     calculate_utility(apples, oranges + 1) - calculate_utility(apples, oranges)
 }
 
-pub fn calculate_marginal_rate_of_substitution(apples: u32, oranges: u32) -> f32 {
+fn calculate_marginal_rate_of_substitution(apples: u32, oranges: u32) -> f32 {
     calculate_apple_marginal_utility(apples, oranges)
         / calculate_orange_marginal_utility(apples, oranges)
 }

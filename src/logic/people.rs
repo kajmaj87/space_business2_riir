@@ -52,12 +52,6 @@ pub struct MoveTo {
 }
 
 #[derive(Component)]
-pub struct LastPosition {
-    pub coords: VirtualCoords,
-    pub time_in_position: u32,
-}
-
-#[derive(Component)]
 pub struct Forage;
 
 pub struct Information {
@@ -119,7 +113,6 @@ impl Plugin for PeoplePlugin {
             .add_system(foraging_system)
             .add_system(aging_system)
             .add_system(fertility_system)
-            .add_system(blocked_move_remover)
             // we need to despawn enities separately so that no commands use them in wrong moment
             .add_system(cleanup_system.in_base_set(CoreSet::PostUpdate));
     }
@@ -335,30 +328,6 @@ pub fn move_system(
                 new_position
             );
         }
-    }
-}
-
-#[measured]
-fn blocked_move_remover(
-    mut query: Query<(Entity, &Person, &mut LastPosition, &VirtualCoords), With<LastPosition>>,
-    no_last_postion: Query<(Entity, &Person, &VirtualCoords), Without<LastPosition>>,
-    mut commands: Commands,
-) {
-    for (person, _, mut last_position, coords) in query.iter_mut() {
-        if last_position.time_in_position > 10 {
-            commands.entity(person).remove::<MoveTo>();
-        } else if last_position.coords == *coords {
-            last_position.time_in_position += 1;
-        } else {
-            last_position.time_in_position = 0;
-            last_position.coords = *coords;
-        }
-    }
-    for (person, _, coords) in no_last_postion.iter() {
-        commands.entity(person).insert(LastPosition {
-            coords: *coords,
-            time_in_position: 0,
-        });
     }
 }
 
