@@ -266,11 +266,14 @@ fn plot_transactions(_config: &mut ResMut<Config>, transactions: &Vec<Transactio
 }
 
 fn plot_orange_price(config: &mut ResMut<Config>, transactions: &Vec<Transaction>, ui: &mut Ui) {
-    let price = get_range(transactions, config.ui.plot_time_range.value)
-        .iter()
-        .map(|t| t.apples as f64 / t.oranges as f64)
-        .filter(|p| p.is_finite())
-        .collect::<Vec<_>>();
+    let price = moving_average(
+        &get_range(transactions, config.ui.plot_time_range.value)
+            .iter()
+            .map(|t| t.apples as f64 / t.oranges as f64)
+            .filter(|p| p.is_finite())
+            .collect::<Vec<_>>(),
+        100,
+    );
     let price_line = create_plot_line_f64("Price", price.as_slice());
     Plot::new("price")
         .view_aspect(2.0)
@@ -281,6 +284,23 @@ fn plot_orange_price(config: &mut ResMut<Config>, transactions: &Vec<Transaction
         .show(ui, |plot_ui| {
             plot_ui.line(price_line);
         });
+}
+
+fn moving_average(data: &Vec<f64>, window_size: usize) -> Vec<f64> {
+    if window_size == 0 || data.len() < window_size {
+        return Vec::new();
+    }
+
+    let mut result = Vec::with_capacity(data.len() - window_size + 1);
+
+    for i in 0..(data.len() - window_size + 1) {
+        let window = &data[i..(i + window_size)];
+        let sum: f64 = window.iter().sum();
+        let avg = sum / window_size as f64;
+        result.push(avg);
+    }
+
+    result
 }
 
 fn get_range<T>(vector: &Vec<T>, last_n: usize) -> &[T] {
