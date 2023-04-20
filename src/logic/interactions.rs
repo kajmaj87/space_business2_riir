@@ -11,6 +11,7 @@ use crate::logic::people::{
     free_neighbouring_coords, occupied_neighbouring_coords, Female, Fertile, Male, Person,
     PersonBundle,
 };
+use crate::stats::components::{Statistics, Transaction};
 
 use super::planet::FoodAmount;
 
@@ -110,6 +111,7 @@ fn create_baby(
 pub fn trade_interaction_system(
     query: Query<&PeopleInteraction>,
     people: Query<(&Person, &mut FoodAmount)>,
+    mut stats: ResMut<Statistics>,
     config: Res<Config>,
 ) {
     if !config.game.trade_allowed.value {
@@ -123,15 +125,19 @@ pub fn trade_interaction_system(
             let mrs_a = calculate_marginal_rate_of_substitution(a_food.apples, a_food.oranges);
             let mrs_b = calculate_marginal_rate_of_substitution(b_food.apples, b_food.oranges);
             if mrs_a < 1.0 && mrs_b > 1.0 {
-                trade_apples_for_oranges(a_food, b_food);
+                trade_apples_for_oranges(a_food, b_food, &mut stats);
             } else if mrs_a > 1.0 && mrs_b < 1.0 {
-                trade_apples_for_oranges(b_food, a_food);
+                trade_apples_for_oranges(b_food, a_food, &mut stats);
             }
         }
     }
 }
 
-fn trade_apples_for_oranges(a_food: &FoodAmount, b_food: &FoodAmount) {
+fn trade_apples_for_oranges(
+    a_food: &FoodAmount,
+    b_food: &FoodAmount,
+    stats: &mut ResMut<Statistics>,
+) {
     let u_a = calculate_utility(a_food.apples, a_food.oranges);
     let u_b = calculate_utility(b_food.apples, b_food.oranges);
     let apples_to_trade = if a_food.apples > b_food.apples {
@@ -167,6 +173,10 @@ fn trade_apples_for_oranges(a_food: &FoodAmount, b_food: &FoodAmount) {
                 oranges: b_food.oranges - oranges_to_trade,
             }
         );
+        stats.trade_history.push(Transaction {
+            apples: apples_to_trade,
+            oranges: oranges_to_trade,
+        });
     }
 }
 

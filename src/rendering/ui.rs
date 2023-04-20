@@ -156,6 +156,15 @@ pub fn create_plot_line(name: &str, values: &[u32]) -> Line {
 
     Line::new(stats).name(name)
 }
+pub fn create_plot_line_f64(name: &str, values: &[f64]) -> Line {
+    let stats: PlotPoints = values
+        .iter()
+        .enumerate()
+        .map(|(i, v)| [i as f64, *v])
+        .collect();
+
+    Line::new(stats).name(name)
+}
 
 pub fn create_histogram(name: &str, values: &[u32], bins: u32) -> BarChart {
     let mut histogram = HashMap::new();

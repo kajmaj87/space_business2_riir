@@ -4,6 +4,10 @@ use crate::debug::components::Performance;
 use crate::logic::components::{FoodAmount, FoodSource, Person};
 use macros::measured;
 
+pub struct Transaction {
+    pub apples: u32,
+    pub oranges: u32,
+}
 #[derive(Resource)]
 pub struct Statistics {
     pub apple_history_sources: Vec<u32>,
@@ -15,6 +19,7 @@ pub struct Statistics {
     pub current_apples: u32,
     pub current_oranges: u32,
     pub current_people: u32,
+    pub trade_history: Vec<Transaction>,
 }
 
 #[measured]

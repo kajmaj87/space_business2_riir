@@ -2,10 +2,11 @@ use crate::config::Config;
 use crate::logic::components::{Age, Dead, FoodAmount, FoodSource, FoodType, Person};
 use crate::logic::people::{Female, Fertile, Male};
 use crate::rendering::ui::{
-    add_options_grid, create_histogram, create_plot_line, draw_config_value,
+    add_options_grid, create_histogram, create_plot_line, create_plot_line_f64, draw_config_value,
 };
+use crate::stats::components::Transaction;
 use bevy::prelude::*;
-use bevy_egui::egui::plot::{Corner, Legend, Plot};
+use bevy_egui::egui::plot::{Corner, Legend, Plot, PlotPoints, Points};
 use bevy_egui::egui::{Color32, Ui};
 use bevy_egui::{egui, EguiContexts};
 
@@ -83,6 +84,30 @@ pub fn stats_window(
                 / people.iter().count() as f32
         ));
         ui.label(format!(
+            "Average apple trade volume in last 100 ticks: {:.0}",
+            get_range(&stats.trade_history, 100)
+                .iter()
+                .map(|t| { t.apples })
+                .sum::<u32>() as f32
+                / get_range(&stats.trade_history, 100).len() as f32
+        ));
+        ui.label(format!(
+            "Average orange trade volume in last 100 ticks: {:.0}",
+            get_range(&stats.trade_history, 100)
+                .iter()
+                .map(|t| { t.oranges })
+                .sum::<u32>() as f32
+                / get_range(&stats.trade_history, 100).len() as f32
+        ));
+        ui.label(format!(
+            "Average orange trade price in last 100 ticks: {:.2}",
+            get_range(&stats.trade_history, 100)
+                .iter()
+                .map(|t| { t.apples as f32 / t.oranges as f32 })
+                .sum::<f32>()
+                / get_range(&stats.trade_history, 100).len() as f32
+        ));
+        ui.label(format!(
             "Gini Coefficient: {:.3}",
             calculate_gini_coefficient(
                 &people_wealth
@@ -131,21 +156,21 @@ pub fn food_statistics(
         plot_food_on_planet(&stats, &mut config, ui);
         plot_food_for_people(&stats, &mut config, ui);
         plot_people(&stats, &mut config, ui);
-        plot_ages(config, query, ui);
+        plot_ages(&mut config, query, ui);
+        plot_transactions(&mut config, &stats.trade_history, ui);
+        plot_orange_price(&mut config, &stats.trade_history, ui);
     });
 }
 
 fn plot_food_on_planet(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui) {
-    let apple_range = get_range(
+    let apples = get_range(
         &stats.apple_history_sources,
         config.ui.plot_time_range.value,
     );
-    let orange_range = get_range(
+    let oranges = get_range(
         &stats.orange_history_sources,
         config.ui.plot_time_range.value,
     );
-    let apples = &stats.apple_history_sources.as_slice()[apple_range..];
-    let oranges = &stats.orange_history_sources.as_slice()[orange_range..];
     let apple_line = create_plot_line("Apples", apples).color(Color32::RED);
     let orange_line = create_plot_line("Oranges", oranges).color(Color32::from_rgb(255, 165, 0));
     Plot::new("foods")
@@ -161,14 +186,11 @@ fn plot_food_on_planet(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui:
 }
 
 fn plot_food_for_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui) {
-    let apple_range_people =
-        get_range(&stats.apple_history_people, config.ui.plot_time_range.value);
-    let orange_range_people = get_range(
+    let apples_people = get_range(&stats.apple_history_people, config.ui.plot_time_range.value);
+    let oranges_people = get_range(
         &stats.orange_history_people,
         config.ui.plot_time_range.value,
     );
-    let apples_people = &stats.apple_history_people.as_slice()[apple_range_people..];
-    let oranges_people = &stats.orange_history_people.as_slice()[orange_range_people..];
     let apple_line_people = create_plot_line("Apples (people)", apples_people).color(Color32::RED);
     let orange_line_people =
         create_plot_line("Oranges (people)", oranges_people).color(Color32::from_rgb(255, 165, 0));
@@ -185,8 +207,7 @@ fn plot_food_for_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui
 }
 
 fn plot_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui) {
-    let people_range = get_range(&stats.people_history, config.ui.plot_time_range.value);
-    let people = &stats.people_history.as_slice()[people_range..];
+    let people = get_range(&stats.people_history, config.ui.plot_time_range.value);
     let people_line = create_plot_line("People", people);
     Plot::new("people")
         .view_aspect(2.0)
@@ -199,7 +220,11 @@ fn plot_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui
         });
 }
 
-fn plot_ages(config: ResMut<Config>, query: Query<(&Person, &Age), Without<Dead>>, ui: &mut Ui) {
+fn plot_ages(
+    config: &mut ResMut<Config>,
+    query: Query<(&Person, &Age), Without<Dead>>,
+    ui: &mut Ui,
+) {
     let ages = query.iter().map(|(_, age)| age.0).collect::<Vec<_>>();
     Plot::new("ages")
         .view_aspect(2.0)
@@ -216,10 +241,53 @@ fn plot_ages(config: ResMut<Config>, query: Query<(&Person, &Age), Without<Dead>
         });
 }
 
-fn get_range(vector: &Vec<u32>, last_n: usize) -> usize {
-    if vector.len() > last_n {
+fn plot_transactions(_config: &mut ResMut<Config>, transactions: &Vec<Transaction>, ui: &mut Ui) {
+    Plot::new("transactions")
+        .view_aspect(2.0)
+        .legend(Legend {
+            position: Corner::LeftTop,
+            ..default()
+        })
+        .show(ui, |plot_ui| {
+            let points: PlotPoints = get_range(transactions, 1000)
+                .iter()
+                .map(|transaction| {
+                    // random number between -1.0 and 1.0
+                    let random_x = rand::random::<f64>() * 2.0 - 1.0;
+                    let random_y = rand::random::<f64>() * 2.0 - 1.0;
+                    [
+                        transaction.apples as f64 + random_x,
+                        transaction.oranges as f64 + random_y,
+                    ]
+                })
+                .collect();
+            plot_ui.points(Points::new(points));
+        });
+}
+
+fn plot_orange_price(config: &mut ResMut<Config>, transactions: &Vec<Transaction>, ui: &mut Ui) {
+    let price = get_range(transactions, config.ui.plot_time_range.value)
+        .iter()
+        .map(|t| t.apples as f64 / t.oranges as f64)
+        .filter(|p| p.is_finite())
+        .collect::<Vec<_>>();
+    let price_line = create_plot_line_f64("Price", price.as_slice());
+    Plot::new("price")
+        .view_aspect(2.0)
+        .legend(Legend {
+            position: Corner::LeftTop,
+            ..default()
+        })
+        .show(ui, |plot_ui| {
+            plot_ui.line(price_line);
+        });
+}
+
+fn get_range<T>(vector: &Vec<T>, last_n: usize) -> &[T] {
+    let range = if vector.len() > last_n {
         vector.len() - last_n
     } else {
         0
-    }
+    };
+    &vector.as_slice()[range..]
 }

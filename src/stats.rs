@@ -14,6 +14,7 @@ impl Plugin for StatsPlugin {
             apple_history_people: vec![],
             orange_history_people: vec![],
             people_history: vec![],
+            trade_history: vec![],
             current_food: 0,
             current_apples: 0,
             current_oranges: 0,

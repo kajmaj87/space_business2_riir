@@ -1,1 +1,1 @@
-pub use super::economy::Statistics;
+pub use super::economy::{Statistics, Transaction};
