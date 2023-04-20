@@ -80,7 +80,7 @@
       "description": "How many frames to wait until removing dead person entity from game"
     },
     "food_for_baby": {
-      "value": 15,
+      "value": 30,
       "name": "Food for baby",
       "description": "Person has to have double amount of this to create a baby. He will give this amount to it when its born"
     },
@@ -94,7 +94,7 @@
       ]
     },
     "growing_season_length": {
-      "value": 1.0,
+      "value": 0.66,
       "name": "Growing season length",
       "description": "How many frames are in one growing season",
       "range": [
@@ -103,7 +103,7 @@
       ]
     },
     "death_lottery": {
-      "value": true,
+      "value": false,
       "name": "Death lottery",
       "description": "If checked a random person will inherit all food after someone dies. Otherwise the food goes to waste."
     },
@@ -164,7 +164,7 @@
       "description": "Torus - map is a torus, so the edges are connected. FlatEarth - you know it. RingVertical - vertically connected edges. RingHorizontal - horizontally connected edges"
     },
     "apple_tree_tile_probability": {
-      "value": 0.5,
+      "value": 0.7,
       "name": "Apple tile %",
       "description": "How many tiles will be generates as trees (randomly)",
       "range": [
@@ -173,7 +173,7 @@
       ]
     },
     "orange_tree_tile_probability": {
-      "value": 0.6,
+      "value": 0.85,
       "name": "Orange tile %",
       "description": "How many tiles will be generates as trees (randomly)",
       "range": [

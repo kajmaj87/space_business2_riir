@@ -157,6 +157,15 @@ pub fn food_statistics(
         plot_food_for_people(&stats, &mut config, ui);
         plot_people(&stats, &mut config, ui);
         plot_ages(&mut config, query, ui);
+    });
+}
+pub fn money_statistics(
+    mut egui_context: EguiContexts,
+    stats: Res<Statistics>,
+    mut config: ResMut<Config>,
+) {
+    egui::Window::new("Money Plots").show(egui_context.ctx_mut(), |ui| {
+        ui.label("Prices over time");
         plot_transactions(&mut config, &stats.trade_history, ui);
         plot_orange_price(&mut config, &stats.trade_history, ui);
     });
