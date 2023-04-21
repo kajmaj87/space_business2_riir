@@ -179,16 +179,6 @@ pub fn money_statistics(
 }
 
 fn plot_food_on_planet(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui) {
-    let apples = get_range(
-        &stats.apple_history_sources,
-        config.ui.plot_time_range.value,
-    );
-    let oranges = get_range(
-        &stats.orange_history_sources,
-        config.ui.plot_time_range.value,
-    );
-    let apple_line = create_plot_line("Apples", apples).color(Color32::RED);
-    let orange_line = create_plot_line("Oranges", oranges).color(Color32::from_rgb(255, 165, 0));
     Plot::new("foods")
         .view_aspect(2.0)
         .legend(Legend {
@@ -196,20 +186,23 @@ fn plot_food_on_planet(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui:
             ..default()
         })
         .show(ui, |plot_ui| {
+            let apples = get_range(
+                &stats.apple_history_sources,
+                config.ui.plot_time_range.value,
+            );
+            let oranges = get_range(
+                &stats.orange_history_sources,
+                config.ui.plot_time_range.value,
+            );
+            let apple_line = create_plot_line("Apples", apples).color(Color32::RED);
+            let orange_line =
+                create_plot_line("Oranges", oranges).color(Color32::from_rgb(255, 165, 0));
             plot_ui.line(apple_line);
             plot_ui.line(orange_line);
         });
 }
 
 fn plot_food_for_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui) {
-    let apples_people = get_range(&stats.apple_history_people, config.ui.plot_time_range.value);
-    let oranges_people = get_range(
-        &stats.orange_history_people,
-        config.ui.plot_time_range.value,
-    );
-    let apple_line_people = create_plot_line("Apples (people)", apples_people).color(Color32::RED);
-    let orange_line_people =
-        create_plot_line("Oranges (people)", oranges_people).color(Color32::from_rgb(255, 165, 0));
     Plot::new("foods_people")
         .view_aspect(2.0)
         .legend(Legend {
@@ -217,14 +210,22 @@ fn plot_food_for_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui
             ..default()
         })
         .show(ui, |plot_ui| {
+            let apples_people =
+                get_range(&stats.apple_history_people, config.ui.plot_time_range.value);
+            let oranges_people = get_range(
+                &stats.orange_history_people,
+                config.ui.plot_time_range.value,
+            );
+            let apple_line_people =
+                create_plot_line("Apples (people)", apples_people).color(Color32::RED);
+            let orange_line_people = create_plot_line("Oranges (people)", oranges_people)
+                .color(Color32::from_rgb(255, 165, 0));
             plot_ui.line(apple_line_people);
             plot_ui.line(orange_line_people);
         });
 }
 
 fn plot_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui) {
-    let people = get_range(&stats.people_history, config.ui.plot_time_range.value);
-    let people_line = create_plot_line("People", people);
     Plot::new("people")
         .view_aspect(2.0)
         .legend(Legend {
@@ -232,6 +233,8 @@ fn plot_people(stats: &Res<Statistics>, config: &mut ResMut<Config>, ui: &mut Ui
             ..default()
         })
         .show(ui, |plot_ui| {
+            let people = get_range(&stats.people_history, config.ui.plot_time_range.value);
+            let people_line = create_plot_line("People", people);
             plot_ui.line(people_line);
         });
 }
@@ -241,7 +244,6 @@ fn plot_ages(
     query: Query<(&Person, &Age), Without<Dead>>,
     ui: &mut Ui,
 ) {
-    let ages = query.iter().map(|(_, age)| age.0).collect::<Vec<_>>();
     Plot::new("ages")
         .view_aspect(2.0)
         .legend(Legend {
@@ -249,6 +251,7 @@ fn plot_ages(
             ..default()
         })
         .show(ui, |plot_ui| {
+            let ages = query.iter().map(|(_, age)| age.0).collect::<Vec<_>>();
             plot_ui.bar_chart(create_histogram(
                 "Ages",
                 &ages,
