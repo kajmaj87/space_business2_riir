@@ -66,11 +66,11 @@
       ]
     },
     "starting_people": {
-      "value": 121,
+      "value": 700,
       "name": "Starting people"
     },
     "max_person_age": {
-      "value": 2500,
+      "value": 25000,
       "name": "Max person age",
       "description": "Each person will die after that many turns. 0 means that people do not die of old age."
     },
@@ -80,7 +80,7 @@
       "description": "How many frames to wait until removing dead person entity from game"
     },
     "food_for_baby": {
-      "value": 30,
+      "value": 150,
       "name": "Food for baby",
       "description": "Person has to have double amount of this to create a baby. He will give this amount to it when its born"
     },
@@ -184,7 +184,7 @@
   },
   "ai": {
     "food_amount_goal": {
-      "value": 40,
+      "value": 800,
       "name": "Food amount goal",
       "description": "Food amount at which the actor does not care about food at all"
     },

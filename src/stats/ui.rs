@@ -172,7 +172,9 @@ pub fn money_statistics(
     egui::Window::new("Money Plots").show(egui_context.ctx_mut(), |ui| {
         ui.label("Prices over time");
         plot_transactions(&mut config, &stats.trade_history, ui);
-        plot_orange_price(&mut config, &stats.trade_history, ui);
+        plot_orange_price(&mut config, &stats.trade_history, ui, 100);
+        plot_orange_price(&mut config, &stats.trade_history, ui, 1000);
+        plot_orange_price(&mut config, &stats.trade_history, ui, 10000);
     });
 }
 
@@ -279,17 +281,22 @@ fn plot_transactions(_config: &mut ResMut<Config>, transactions: &Vec<Transactio
         });
 }
 
-fn plot_orange_price(config: &mut ResMut<Config>, transactions: &Vec<Transaction>, ui: &mut Ui) {
+fn plot_orange_price(
+    config: &mut ResMut<Config>,
+    transactions: &Vec<Transaction>,
+    ui: &mut Ui,
+    window: usize,
+) {
     let price = moving_average(
         &get_range(transactions, config.ui.plot_time_range.value)
             .iter()
             .map(|t| t.apples as f64 / t.oranges as f64)
             .filter(|p| p.is_finite())
             .collect::<Vec<_>>(),
-        100,
+        window,
     );
     let price_line = create_plot_line_f64("Price", price.as_slice());
-    Plot::new("price")
+    Plot::new(format!("price_{}", window))
         .view_aspect(2.0)
         .legend(Legend {
             position: Corner::LeftTop,
@@ -307,10 +314,14 @@ fn moving_average(data: &Vec<f64>, window_size: usize) -> Vec<f64> {
 
     let mut result = Vec::with_capacity(data.len() - window_size + 1);
 
-    for i in 0..(data.len() - window_size + 1) {
-        let window = &data[i..(i + window_size)];
-        let sum: f64 = window.iter().sum();
-        let avg = sum / window_size as f64;
+    // Calculate the sum of the first window
+    let mut window_sum: f64 = data[..window_size].iter().sum();
+    result.push(window_sum / window_size as f64);
+
+    // Iterate through the rest of the vector and adjust the window sum
+    for i in 1..(data.len() - window_size + 1) {
+        window_sum += data[i + window_size - 1] - data[i - 1];
+        let avg = window_sum / window_size as f64;
         result.push(avg);
     }
 
