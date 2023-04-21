@@ -287,15 +287,6 @@ fn plot_orange_price(
     ui: &mut Ui,
     window: usize,
 ) {
-    let price = moving_average(
-        &get_range(transactions, config.ui.plot_time_range.value)
-            .iter()
-            .map(|t| t.apples as f64 / t.oranges as f64)
-            .filter(|p| p.is_finite())
-            .collect::<Vec<_>>(),
-        window,
-    );
-    let price_line = create_plot_line_f64("Price", price.as_slice());
     Plot::new(format!("price_{}", window))
         .view_aspect(2.0)
         .legend(Legend {
@@ -303,6 +294,15 @@ fn plot_orange_price(
             ..default()
         })
         .show(ui, |plot_ui| {
+            let price = moving_average(
+                &get_range(transactions, config.ui.plot_time_range.value)
+                    .iter()
+                    .map(|t| t.apples as f64 / t.oranges as f64)
+                    .filter(|p| p.is_finite())
+                    .collect::<Vec<_>>(),
+                window,
+            );
+            let price_line = create_plot_line_f64("Price", price.as_slice());
             plot_ui.line(price_line);
         });
 }
