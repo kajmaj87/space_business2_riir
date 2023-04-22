@@ -182,6 +182,7 @@ pub fn money_statistics(
         plot_orange_price(&mut config, &stats.trade_history, ui, 1);
         plot_orange_price(&mut config, &stats.trade_history, ui, 10);
         plot_orange_price(&mut config, &stats.trade_history, ui, 100);
+        plot_trade_volume(&mut config, &stats.trade_history, ui, 100);
     });
 }
 
@@ -317,7 +318,40 @@ fn plot_orange_price(
                 get_range(&day_prices, config.ui.plot_time_range.value / 10),
                 window,
             );
-            let price_line = create_plot_line_f64("Price", price.as_slice());
+            let price_line =
+                create_plot_line_f64(&format!("Avg Price in {} ticks", window), price.as_slice());
+            plot_ui.line(price_line);
+        });
+}
+
+fn plot_trade_volume(
+    config: &mut ResMut<Config>,
+    transactions: &[Vec<Transaction>],
+    ui: &mut Ui,
+    window: usize,
+) {
+    Plot::new(format!("volume_{}", window))
+        .view_aspect(2.0)
+        .legend(Legend {
+            position: Corner::LeftTop,
+            ..default()
+        })
+        .show(ui, |plot_ui| {
+            let day_prices = transactions
+                .iter()
+                .map(|t| {
+                    t.iter().map(|f| f.apples).sum::<u32>() as f64
+                        + t.iter().map(|f| f.oranges).sum::<u32>() as f64
+                })
+                .collect::<Vec<_>>();
+            let volume = moving_average(
+                get_range(&day_prices, config.ui.plot_time_range.value / 10),
+                window,
+            );
+            let price_line = create_plot_line_f64(
+                &format!("Avg daily trade vol. in last {} ticks", window),
+                volume.as_slice(),
+            );
             plot_ui.line(price_line);
         });
 }
