@@ -179,8 +179,6 @@ pub fn money_statistics(
     egui::Window::new("Money Plots").show(egui_context.ctx_mut(), |ui| {
         ui.label("Prices over time");
         // plot_transactions(&mut config, &stats.trade_history, ui);
-        plot_orange_price(&mut config, &stats.trade_history, ui, 1);
-        plot_orange_price(&mut config, &stats.trade_history, ui, 10);
         plot_orange_price(&mut config, &stats.trade_history, ui, 100);
         plot_trade_volume(&mut config, &stats.trade_history, ui, 100);
     });
