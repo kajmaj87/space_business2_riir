@@ -173,10 +173,17 @@ fn trade_apples_for_oranges(
                 oranges: b_food.oranges - oranges_to_trade,
             }
         );
-        stats.trade_history.push(Transaction {
-            apples: apples_to_trade,
-            oranges: oranges_to_trade,
-        });
+        if let Some(transactions) = stats.trade_history.last_mut() {
+            transactions.push(Transaction {
+                apples: apples_to_trade,
+                oranges: oranges_to_trade,
+            });
+        } else {
+            stats.trade_history.push(vec![Transaction {
+                apples: apples_to_trade,
+                oranges: oranges_to_trade,
+            }]);
+        }
     }
 }
 

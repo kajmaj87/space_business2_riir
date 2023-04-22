@@ -5,6 +5,7 @@ use macros::measured;
 
 use crate::config::Config;
 use crate::logic::measures::{RealCoords, VirtualCoords};
+use crate::stats::components::Statistics;
 
 #[derive(Component)]
 pub enum FoodType {
@@ -63,8 +64,9 @@ pub fn food_growth(
 
 // this system increases time by 1 every frame
 #[measured]
-pub fn time_system(mut time: ResMut<TotalTicks>) {
+pub fn time_system(mut time: ResMut<TotalTicks>, mut stats: ResMut<Statistics>) {
     time.0 += 1;
+    stats.trade_history.push(Vec::new());
 }
 
 // this function checks if food is in growing season

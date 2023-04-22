@@ -89,7 +89,7 @@ pub fn stats_window(
             "Average apple trade volume in last 100 ticks: {:.0}",
             get_range(&stats.trade_history, 100)
                 .iter()
-                .map(|t| { t.apples })
+                .map(|t| t.iter().map(|f| f.apples).sum::<u32>())
                 .sum::<u32>() as f32
                 / get_range(&stats.trade_history, 100).len() as f32
         ));
@@ -97,18 +97,25 @@ pub fn stats_window(
             "Average orange trade volume in last 100 ticks: {:.0}",
             get_range(&stats.trade_history, 100)
                 .iter()
-                .map(|t| { t.oranges })
+                .map(|t| t.iter().map(|f| f.oranges).sum::<u32>())
                 .sum::<u32>() as f32
                 / get_range(&stats.trade_history, 100).len() as f32
         ));
-        ui.label(format!(
-            "Average orange trade price in last 100 ticks: {:.2}",
-            get_range(&stats.trade_history, 100)
-                .iter()
-                .map(|t| { t.apples as f32 / t.oranges as f32 })
-                .sum::<f32>()
-                / get_range(&stats.trade_history, 100).len() as f32
-        ));
+        if let Some((total_apples, total_oranges)) = get_range(&stats.trade_history, 100)
+            .iter()
+            .map(|t| {
+                (
+                    t.iter().map(|f| f.apples).sum::<u32>() as f32,
+                    t.iter().map(|f| f.oranges).sum::<u32>() as f32,
+                )
+            })
+            .reduce(|a, b| (a.0 + b.0, a.1 + b.1))
+        {
+            ui.label(format!(
+                "Average orange trade price in last 100 ticks: {:.2}",
+                total_apples / total_oranges
+            ));
+        }
         ui.label(format!(
             "Gini Coefficient: {:.3}",
             calculate_gini_coefficient(
@@ -171,10 +178,10 @@ pub fn money_statistics(
 ) {
     egui::Window::new("Money Plots").show(egui_context.ctx_mut(), |ui| {
         ui.label("Prices over time");
-        plot_transactions(&mut config, &stats.trade_history, ui);
+        // plot_transactions(&mut config, &stats.trade_history, ui);
+        plot_orange_price(&mut config, &stats.trade_history, ui, 1);
+        plot_orange_price(&mut config, &stats.trade_history, ui, 10);
         plot_orange_price(&mut config, &stats.trade_history, ui, 100);
-        plot_orange_price(&mut config, &stats.trade_history, ui, 1000);
-        plot_orange_price(&mut config, &stats.trade_history, ui, 10000);
     });
 }
 
@@ -260,6 +267,7 @@ fn plot_ages(
         });
 }
 
+#[allow(dead_code)]
 fn plot_transactions(_config: &mut ResMut<Config>, transactions: &Vec<Transaction>, ui: &mut Ui) {
     Plot::new("transactions")
         .view_aspect(2.0)
@@ -286,7 +294,7 @@ fn plot_transactions(_config: &mut ResMut<Config>, transactions: &Vec<Transactio
 
 fn plot_orange_price(
     config: &mut ResMut<Config>,
-    transactions: &Vec<Transaction>,
+    transactions: &[Vec<Transaction>],
     ui: &mut Ui,
     window: usize,
 ) {
@@ -297,12 +305,16 @@ fn plot_orange_price(
             ..default()
         })
         .show(ui, |plot_ui| {
+            let day_prices = transactions
+                .iter()
+                .map(|t| {
+                    t.iter().map(|f| f.apples).sum::<u32>() as f64
+                        / t.iter().map(|f| f.oranges).sum::<u32>() as f64
+                })
+                .filter(|p| p.is_finite())
+                .collect::<Vec<_>>();
             let price = moving_average(
-                &get_range(transactions, config.ui.plot_time_range.value)
-                    .iter()
-                    .map(|t| t.apples as f64 / t.oranges as f64)
-                    .filter(|p| p.is_finite())
-                    .collect::<Vec<_>>(),
+                get_range(&day_prices, config.ui.plot_time_range.value / 10),
                 window,
             );
             let price_line = create_plot_line_f64("Price", price.as_slice());
@@ -310,7 +322,7 @@ fn plot_orange_price(
         });
 }
 
-fn moving_average(data: &Vec<f64>, window_size: usize) -> Vec<f64> {
+fn moving_average(data: &[f64], window_size: usize) -> Vec<f64> {
     if window_size == 0 || data.len() < window_size {
         return Vec::new();
     }

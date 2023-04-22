@@ -17,7 +17,7 @@ impl Plugin for LogicPlugin {
         app.add_plugin(people::PeoplePlugin)
             .add_plugin(ai::AiPlugin)
             .insert_resource(planet::TotalTicks(0))
-            .add_system(planet::time_system)
+            .add_system(planet::time_system.in_base_set(CoreSet::PreUpdate))
             .add_system(planet::food_growth)
             .add_system(interactions::add_interaction_system.in_base_set(CoreSet::First))
             .add_system(interactions::breeding_interaction_system)
